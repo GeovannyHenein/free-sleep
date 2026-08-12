@@ -1,7 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 import { useMemo } from 'react';
 import Alert, { AlertProps } from '@mui/material/Alert';
-import Link from '@mui/material/Link';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
 import { LineChart } from '@mui/x-charts/LineChart';
@@ -39,12 +38,7 @@ const Banner = ({ metric }: BannerProps) => {
     heart_rate: {
       icon: <InfoIcon color='info'/>,
       severity: 'info',
-      text: <Typography>Heart rate data has been validated with six participants, and accuracy may be limited.
-        You can help improve future accuracy by contributing your own data for validation or
-        by experimenting and improving the algorithm yourself.
-        See the <Link href='https://github.com/throwaway31265/free-sleep?tab=readme-ov-file#biometrics-'>documentation</Link>
-        &nbsp;for details on current measurement accuracy.
-      </Typography>,
+      text: <Typography>Heart rate data has been validated with six participants, and accuracy may be limited.</Typography>,
     },
     breathing_rate: {
       icon: <WarningIcon color='warning'/>,

@@ -455,7 +455,7 @@ const createServerStatus = (): ServerStatus => ({
 
 const createLogs = (): LogStore => ({
   'free-sleep.log': [
-    `[${new Date(now.getTime() - 3 * MINUTES_TO_MS).toISOString()}] INFO Starting Free Sleep demo mode`,
+    `[${new Date(now.getTime() - 3 * MINUTES_TO_MS).toISOString()}] INFO Starting GBedOS demo mode`,
     `[${new Date(now.getTime() - 2 * MINUTES_TO_MS).toISOString()}] INFO Schedules loaded successfully`,
     `[${new Date(now.getTime() - 90 * 1000).toISOString()}] INFO Biometrics stream connected`,
     `[${new Date(now.getTime() - 30 * 1000).toISOString()}] INFO Demo data refreshed`,

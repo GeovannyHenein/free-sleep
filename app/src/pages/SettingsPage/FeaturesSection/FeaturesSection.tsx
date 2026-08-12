@@ -63,7 +63,7 @@ export default function FeaturesSection() {
         label="Enable Sentry error reporting"
       />
       <Typography color='text.secondary'>
-        Help improve stability by sending anonymous error reports to the free-sleep maintainers.
+        Help improve stability by sending anonymous error reports.
       </Typography>
     </Section>
   );

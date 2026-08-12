@@ -1,11 +1,11 @@
 {
-  "name": "Free Sleep",
-  "short_name": "Free Sleep",
+  "name": "GBedOS",
+  "short_name": "GBedOS",
   "start_url": "/temperature",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "description": "Free Sleep",
+  "background_color": "#0B0C0E",
+  "theme_color": "#0B0C0E",
+  "description": "Bed climate control",
   "icons": [
     {
       "src": "/free-sleep-icon_96.png",
