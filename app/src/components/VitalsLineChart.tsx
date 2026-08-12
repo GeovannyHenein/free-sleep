@@ -59,6 +59,15 @@ const Banner = ({ metric }: BannerProps) => {
   );
 };
 
+/**
+ * vitalsRecordSchema stores `timestamp` as epoch *seconds*, but `new Date()`
+ * expects milliseconds — passing seconds straight in put every point within a
+ * few seconds of the epoch, so the time axis rendered the same label on every
+ * tick. Multiply, unless the value is already large enough to be milliseconds.
+ */
+const toDate = (timestamp: number) =>
+  new Date(timestamp < 1e11 ? timestamp * 1000 : timestamp);
+
 export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineChartProps) {
   const { width = 300, ref } = useResizeDetector();
   const { side } = useAppStore();
@@ -72,15 +81,15 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
       .filter(
         (record) =>
           record.timestamp &&
-          !isNaN(new Date(record.timestamp).getTime()) &&
+          !isNaN(toDate(record.timestamp).getTime()) &&
           !isNaN(record[metric])
       )
       .map((record) => ({
         ...record,
-        timestamp: new Date(record.timestamp),
+        timestamp: toDate(record.timestamp),
         [metric]: Number(record[metric]),
       }));
-  }, [vitalsRecords]);
+  }, [vitalsRecords, width, metric]);
 
   if (!vitalsRecords) return;
 

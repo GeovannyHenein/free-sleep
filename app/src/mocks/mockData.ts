@@ -36,7 +36,12 @@ const clone = <T>(value: T): T => {
 const toIso = (date: Date) => date.toISOString();
 
 const createSleepRecord = (id: number, side: Side, nightsAgo: number, durationHours: number, exits: number): SleepRecord => {
-  const start = new Date(now.getTime() - nightsAgo * 24 * HOURS_TO_MS + (side === 'left' ? -30 * MINUTES_TO_MS : 0));
+  // Anchor to a plausible bedtime the evening before, rather than "now minus N
+  // days". Anchoring to now made every night start at whatever time the demo
+  // happened to be opened, so charts showed a sliver of a night instead of a
+  // full one. Geo turns in ~30 min earlier than Jess.
+  const start = new Date(now.getTime() - nightsAgo * 24 * HOURS_TO_MS);
+  start.setHours(side === 'left' ? 22 : 22, side === 'left' ? 15 : 45, 0, 0);
   const end = new Date(start.getTime() + durationHours * HOURS_TO_MS);
   const presentInterval: [string, string] = [toIso(start), toIso(end)];
   const absenceStart = new Date(start.getTime() + (durationHours / 2) * HOURS_TO_MS);
@@ -58,62 +63,155 @@ const createSleepRecord = (id: number, side: Side, nightsAgo: number, durationHo
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-/** 8 hourly samples over 8 hours:
- * 50  → 300 → 1400 → 50 (piecewise-linear)
+// Deterministic pseudo-noise. Math.random() would make the demo flicker on
+// every reload and makes screenshots non-reproducible. Two summed sine terms
+// at unrelated frequencies give slow wander rather than per-sample hash noise,
+// which would read as a staircase once values are rounded to integers.
+const jitter = (seed: number, amplitude: number) =>
+  (Math.sin(seed * 0.7) * 0.6 + Math.sin(seed * 0.23 + 1.7) * 0.4) * amplitude;
+
+/**
+ * Movement across one night, sampled every 30 minutes.
+ *
+ * Restless while settling, near-still through deep sleep in the first half,
+ * then increasing turns toward morning as sleep lightens.
  */
-const createMovementRecords = (): MovementRecord[] => {
-  const H = 8; // 8 total records, hourly
-  const start = moment.tz(moment.tz.guess()).startOf('hour').subtract(H - 1, 'hours');
+const createMovementForSleepRecord = (record: SleepRecord, startId: number): MovementRecord[] => {
+  const side = record.side as Side;
+  const startMs = new Date(record.entered_bed_at).getTime();
+  const endMs = new Date(record.left_bed_at).getTime();
+  const intervalMs = 30 * MINUTES_TO_MS;
 
   const keyframes = [
-    { f: 0.0, v: 50 },
-    { f: 0.25, v: 300 },
-    { f: 0.5, v: 1400 },
-    { f: 1.0, v: 50 },
+    { f: 0.0, v: 900 }, // settling in
+    { f: 0.12, v: 180 }, // drops off quickly
+    { f: 0.45, v: 90 }, // deep sleep, minimal movement
+    { f: 0.75, v: 420 }, // lighter sleep, more turning
+    { f: 1.0, v: 1100 }, // waking
   ];
 
   const interp = (f: number) => {
-    // find segment [k, k+1] where f lies
     for (let i = 0; i < keyframes.length - 1; i++) {
       const a = keyframes[i], b = keyframes[i + 1];
       if (f <= b.f) {
-        const t = (f - a.f) / (b.f - a.f);
-        return lerp(a.v, b.v, t);
+        return lerp(a.v, b.v, (f - a.f) / (b.f - a.f));
       }
     }
     return keyframes[keyframes.length - 1].v;
   };
 
+  // Jess turns a little more than Geo; keeps the two traces distinguishable.
+  const scale = side === 'left' ? 1 : 1.25;
+
   const records: MovementRecord[] = [];
-  for (let i = 0; i < H; i++) {
-    const frac = i / (H - 1); // 0 → 1 across 8 points
-    const ts = start.clone().add(i, 'hours').format(); // "YYYY-MM-DDTHH:mm:ssZ"
-    const value = Math.round(clamp(interp(frac), 1, 1400));
-    const side: Side = i % 2 === 0 ? 'left' : 'right';
+  let id = startId;
+  for (let ms = startMs; ms <= endMs; ms += intervalMs) {
+    const frac = (ms - startMs) / (endMs - startMs);
+    const seed = ms / intervalMs;
+    const value = Math.round(
+      clamp(interp(frac) * scale + jitter(seed + 31, 120), 1, 1400)
+    );
 
     records.push({
-      id: i + 1,
+      id: id++,
       side,
-      // @ts-expect-error
-      timestamp: ts, // e.g. "2025-11-06T23:50:00-08:00"
-      total_movement: value, // 1 → 1400 following the 50→300→1400→50 curve
+      // @ts-expect-error - MovementRecord types timestamp as a number, but the
+      // API serves an ISO string and the chart parses it as one.
+      timestamp: moment(ms).format(),
+      total_movement: value,
     });
   }
   return records;
 };
 
-const createVitalsRecords = (): VitalsRecord[] => {
+/**
+ * Per-side physiological baselines. Two people share a bed, so their traces
+ * should be visibly distinct rather than the same curve twice.
+ *
+ * Left (Geo) runs a lower resting heart rate with higher HRV; right (Jess)
+ * runs a little faster with slightly lower HRV and a quicker breath rate.
+ */
+const VITALS_PROFILE: Record<Side, {
+  hrAsleep: number;
+  hrDip: number;
+  hrvBase: number;
+  hrvSwing: number;
+  breathBase: number;
+}> = {
+  left: { hrAsleep: 54, hrDip: 6, hrvBase: 68, hrvSwing: 22, breathBase: 12.5 },
+  right: { hrAsleep: 61, hrDip: 5, hrvBase: 55, hrvSwing: 18, breathBase: 14.5 },
+};
+
+/**
+ * Builds a night of vitals for one sleep record.
+ *
+ * Models the shape of a real night rather than a sawtooth: heart rate falls
+ * through the first hour as the person settles, bottoms out in deep sleep
+ * around the middle, and rises towards waking. HRV moves inversely to heart
+ * rate. Roughly 90-minute sleep cycles ride on top, and REM periods (which
+ * cluster later in the night) briefly push heart and breath rate up.
+ */
+const createVitalsForSleepRecord = (record: SleepRecord): VitalsRecord[] => {
+  const side = record.side as Side;
+  const profile = VITALS_PROFILE[side];
+  const startMs = new Date(record.entered_bed_at).getTime();
+  const endMs = new Date(record.left_bed_at).getTime();
+  const intervalMs = 5 * MINUTES_TO_MS;
   const records: VitalsRecord[] = [];
-  const sampleHours = 12;
-  const intervalMinutes = 15;
-  for (let index = 0; index <= (sampleHours * 60) / intervalMinutes; index += 1) {
-    const timestamp = Math.floor((now.getTime() - index * intervalMinutes * MINUTES_TO_MS) / 1000);
-    const side: Side = index % 2 === 0 ? 'left' : 'right';
-    const heartRate = 55 + ((index * 7) % 10);
-    const hrv = 80 + ((index * 5) % 20);
-    const breathingRate = 10 + ((index * 3) % 5);
-    records.push({ side, timestamp, heart_rate: heartRate, hrv, breathing_rate: breathingRate });
+
+  for (let ms = startMs; ms <= endMs; ms += intervalMs) {
+    const progress = (ms - startMs) / (endMs - startMs); // 0 → 1 across the night
+    const seed = ms / intervalMs;
+
+    // Settle over the first ~15% of the night, then a slow rise toward waking.
+    const settle = Math.min(1, progress / 0.15);
+    const wakeRise = Math.max(0, (progress - 0.75) / 0.25);
+
+    // ~90 minute ultradian cycles.
+    const cycles = Math.sin(progress * Math.PI * 2 * ((endMs - startMs) / (90 * 60 * 1000)));
+
+    // REM density increases through the night; brief arousals lift HR and breath.
+    const remPush = Math.max(0, cycles) * progress * 3.5;
+
+    const heartRate =
+      profile.hrAsleep
+      + (1 - settle) * profile.hrDip * 1.6 // higher while still settling
+      - settle * profile.hrDip * 0.5 // deep-sleep dip
+      + wakeRise * 4
+      + remPush
+      + cycles * 1.2
+      + jitter(seed, 1.6);
+
+    // HRV rises as heart rate falls.
+    const hrv =
+      profile.hrvBase
+      + settle * profile.hrvSwing * 0.6
+      - wakeRise * profile.hrvSwing * 0.5
+      - remPush * 1.8
+      - cycles * 4
+      + jitter(seed + 7, 6);
+
+    // Breath rate is stored as an integer over a narrow range, so a tight
+    // spread would quantise into a two-value square wave. Widen the swing so
+    // the rounded series still reads as a curve.
+    const breathingRate =
+      profile.breathBase
+      - settle * 2.4
+      + wakeRise * 2.2
+      + remPush * 0.8
+      + cycles * 1.1
+      + jitter(seed + 13, 1.5);
+
+    records.push({
+      side,
+      timestamp: Math.floor(ms / 1000),
+      // Clamped to the ranges vitalsRecordSchema enforces.
+      heart_rate: Math.round(clamp(heartRate, 30, 90)),
+      hrv: Math.round(clamp(hrv, 0, 200)),
+      breathing_rate: Math.round(clamp(breathingRate, 5, 30)),
+    });
   }
+
   return records;
 };
 
@@ -479,8 +577,13 @@ let sleepRecords = [
   createSleepRecord(2, 'right', 1, 7.2, 0),
 ];
 
-const movementRecords = createMovementRecords();
-const vitalsRecords = createVitalsRecords();
+// Both derived from the sleep records so every sample falls inside a real sleep
+// window — the Sleep page queries vitals and movement by the selected record's
+// entered_bed_at/left_bed_at range, so anything outside it renders as no data.
+const vitalsRecords = sleepRecords.flatMap(createVitalsForSleepRecord);
+const movementRecords = sleepRecords.flatMap((record, index) =>
+  createMovementForSleepRecord(record, index * 100 + 1)
+);
 let schedules = createSchedules();
 let settings = createSettings();
 let services = createServices();
