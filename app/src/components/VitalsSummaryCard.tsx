@@ -6,7 +6,7 @@ import {
   Card,
   Typography,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { textColor, type } from '../designTokens.ts';
 
 type BiometricsSummaryCardProps = {
   startTime: string;
@@ -19,22 +19,25 @@ type TileProps = {
   unit: string;
 }
 
-const Tile = ({ title, value, unit }: TileProps) => {
-  const theme = useTheme();
-  return (
-    <Box key={ title } textAlign="center" flex={ 1 } minWidth="30%">
-      <Typography variant="body2" color={ theme.palette.grey[400] }>
-        { title }
-      </Typography>
-      <Typography variant="body1" fontWeight="bold" color={ theme.palette.grey[100] }>
-        { value ? value: '--' }{ ' ' }
-        <Typography variant="body2" component="span" color={ theme.palette.grey[400] }>
-          { unit }
-        </Typography>
-      </Typography>
+/**
+ * One metric tile: a small caps label above a dominant value. The unit is held
+ * back in both size and colour so the number reads as the content.
+ */
+const Tile = ({ title, value, unit }: TileProps) => (
+  <Box key={ title } flex={ 1 } minWidth="30%">
+    <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 0.25 } }>
+      { title }
+    </Typography>
+    <Box sx={ { display: 'flex', alignItems: 'baseline', gap: 0.5 } }>
+      <Box sx={ { ...type.metric, color: textColor.primary } }>
+        { value ? value : '--' }
+      </Box>
+      <Box sx={ { ...type.labelTight, color: textColor.tertiary } }>
+        { unit }
+      </Box>
     </Box>
-  );
-};
+  </Box>
+);
 
 // eslint-disable-next-line react/no-multi-comp
 export default function VitalsSummaryCard({ startTime, endTime }: BiometricsSummaryCardProps) {
@@ -42,8 +45,8 @@ export default function VitalsSummaryCard({ startTime, endTime }: BiometricsSumm
   const { data: vitalsSummary, isFetching } = useVitalsSummary({ startTime, endTime, side });
 
   return (
-    <Card sx={ { p: 2, backgroundColor: 'background.paper', position: 'relative', mt: 2 } }>
-      <Typography variant="h6" gutterBottom>
+    <Card sx={ { p: 2.5, position: 'relative', mt: 2 } }>
+      <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 2 } }>
         Health metrics
       </Typography>
       { isFetching && <CircularProgress sx={ { display: 'block', mx: 'auto', my: 2 } } /> }

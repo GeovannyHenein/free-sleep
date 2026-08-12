@@ -1,6 +1,6 @@
 import { Box, ButtonBase, Chip, CircularProgress, Typography, alpha } from '@mui/material';
 import { Add, ChevronRight, Remove } from '@mui/icons-material';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import moment from 'moment-timezone';
 
 import { postDeviceStatus } from '@api/deviceStatus.ts';
@@ -10,7 +10,16 @@ import { useAppStore, type Side } from '@state/appStore.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
 import StepButton from './StepButton.tsx';
 import { getProfile, getProfileName } from '../../config/profiles.ts';
-import { motion, radius, surface, textColor } from '../../designTokens.ts';
+import {
+  blur,
+  motion,
+  radius,
+  shadow,
+  surface,
+  surfaceTreatment,
+  textColor,
+  type,
+} from '../../designTokens.ts';
 
 import {
   MAX_TEMP_F,
@@ -40,6 +49,9 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
   const { data: settings } = useSettings();
   const { data: schedules } = useSchedules();
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // -1 / +1 while the readout is kicking in the direction of a change.
+  const [nudge, setNudge] = useState(0);
+  const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const profile = getProfile(side);
   const name = getProfileName(side, settings?.[side]?.name);
@@ -99,6 +111,11 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
     const next = targetTemp + delta;
     if (next < MIN_TEMP_F || next > MAX_TEMP_F) return;
 
+    // Kick the readout in the direction of travel, then let it spring back.
+    setNudge(delta);
+    if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
+    nudgeTimer.current = setTimeout(() => setNudge(0), 180);
+
     setDeviceStatus({ [side]: { targetTemperatureF: next } });
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(postUpdate, DEBOUNCE_MS);
@@ -115,6 +132,12 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
       .finally(() => setIsUpdating(false));
   };
 
+  // Both timers fire setState, so clear them if the card unmounts first.
+  useEffect(() => () => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
+  }, []);
+
   const controlsDisabled = isUpdating || isAway;
 
   return (
@@ -123,16 +146,32 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
         position: 'relative',
         borderRadius: `${radius.lg}px`,
         border: '1px solid',
-        borderColor: isOn ? alpha(profile.accent, 0.28) : surface.border,
-        backgroundColor: surface.raised,
+        borderColor: isOn ? alpha(profile.accent, 0.22) : alpha('#FFFFFF', 0.07),
+        // Frosted panel: translucent fill over a backdrop blur rather than an
+        // opaque rectangle, so the card reads as glass sitting above the page.
+        backgroundColor: alpha(surface.raised, 0.72),
+        backdropFilter: blur.glass,
+        WebkitBackdropFilter: blur.glass,
         overflow: 'hidden',
-        transition: `border-color ${motion.base}, background-color ${motion.base}`,
-        // Accent wash at the top of the card, stronger when the side is active.
+        transition: `border-color ${motion.base}, box-shadow ${motion.base}`,
+        boxShadow: isOn
+          ? `${shadow.hairlineStrong}, ${shadow.card}, 0 0 0 1px ${alpha(profile.accent, 0.06)}`
+          : `${shadow.hairline}, ${shadow.card}`,
+        // Accent wash, stronger when the side is active.
         '&::before': {
           content: '""',
           position: 'absolute',
           inset: 0,
-          background: `linear-gradient(160deg, ${alpha(profile.accent, isOn ? 0.1 : 0.03)} 0%, transparent 55%)`,
+          background: `linear-gradient(158deg, ${alpha(profile.accent, isOn ? 0.11 : 0.03)} 0%, transparent 52%)`,
+          pointerEvents: 'none',
+          transition: `opacity ${motion.base}`,
+        },
+        // Diagonal sheen across the top edge — the highlight that sells glass.
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          background: surfaceTreatment.glass,
           pointerEvents: 'none',
         },
       } }
@@ -144,9 +183,9 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          px: 2,
+          px: 2.25,
           pt: 2,
-          pb: 1.5,
+          pb: 1,
         } }
       >
         <Box
@@ -187,20 +226,54 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
             disabled={ isUpdating }
             aria-label={ `Turn ${name}'s side ${isOn ? 'off' : 'on'}` }
             sx={ {
-              px: 1.75,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.875,
+              pl: 1.25,
+              pr: 1.75,
               py: 0.75,
               borderRadius: `${radius.pill}px`,
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              transition: `background-color ${motion.fast}, color ${motion.fast}`,
-              backgroundColor: isOn ? alpha(profile.accent, 0.16) : surface.overlay,
+              ...type.label,
+              transition: [
+                `background ${motion.base}`,
+                `color ${motion.base}`,
+                `border-color ${motion.base}`,
+                `box-shadow ${motion.base}`,
+                `transform ${motion.press}`,
+              ].join(', '),
+              background: isOn
+                ? `linear-gradient(180deg, ${alpha(profile.accent, 0.24)} 0%, ${alpha(profile.accent, 0.1)} 100%)`
+                : surfaceTreatment.control,
+              backgroundColor: isOn ? 'transparent' : alpha('#000000', 0.28),
               color: isOn ? profile.accent : textColor.tertiary,
-              border: `1px solid ${isOn ? alpha(profile.accent, 0.32) : surface.border}`,
+              border: `1px solid ${isOn ? alpha(profile.accent, 0.34) : alpha('#FFFFFF', 0.06)}`,
+              boxShadow: isOn
+                ? `${shadow.hairlineStrong}, 0 0 16px ${alpha(profile.accent, 0.22)}`
+                : 'inset 0 1px 3px rgba(0,0,0,0.4)',
+              '&:active': { transform: 'scale(0.95)' },
               '&:disabled': { opacity: 0.5 },
             } }
           >
+            { /* Status dot — pulses gently while the side is heating. */ }
+            <Box
+              component="span"
+              sx={ {
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                flexShrink: 0,
+                backgroundColor: isOn ? profile.accent : textColor.disabled,
+                boxShadow: isOn ? `0 0 8px ${alpha(profile.accent, 0.9)}` : 'none',
+                transition: `background-color ${motion.base}, box-shadow ${motion.base}`,
+                ...(isOn && !isUpdating && {
+                  animation: 'gbedos-pulse 2.4s ease-in-out infinite',
+                }),
+                '@keyframes gbedos-pulse': {
+                  '0%, 100%': { opacity: 1 },
+                  '50%': { opacity: 0.45 },
+                },
+              } }
+            />
             { isOn ? 'On' : 'Off' }
           </ButtonBase>
         ) }
@@ -213,8 +286,8 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
         sx={ {
           position: 'relative',
           width: '100%',
-          px: 2,
-          pb: 1,
+          px: 2.25,
+          pb: 1.25,
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'space-between',
@@ -223,30 +296,80 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           '&:hover': { backgroundColor: alpha(surface.hover, 0.5) },
         } }
       >
-        <Box sx={ { display: 'flex', alignItems: 'baseline', gap: 1.25 } }>
-          <Typography
-            variant="h2"
-            className="tabular"
+        <Box sx={ { display: 'flex', alignItems: 'baseline', gap: 1.25, minWidth: 0 } }>
+          { /* Hero readout. A blurred copy sits behind the number to give it a
+               real halo — a text-shadow alone gets lost against the card.
+               Shifts vertically for a beat when the target changes, so an
+               increase feels different from a decrease. */ }
+          <Box
             sx={ {
-              color: isOn ? tempColor : textColor.disabled,
-              transition: `color ${motion.base}`,
+              position: 'relative',
+              flexShrink: 0,
+              transition: `transform ${motion.spring}`,
+              transform: nudge === 0
+                ? 'translateY(0)'
+                : `translateY(${nudge > 0 ? -5 : 5}px)`,
             } }
           >
-            { isOn ? formatTemperature(targetTemp, isCelsius) : '—' }
-          </Typography>
-          <Box>
-            <Typography variant="overline" sx={ { display: 'block', color: textColor.secondary } }>
+            { isOn && (
+              <Box
+                aria-hidden
+                sx={ {
+                  ...type.hero,
+                  position: 'absolute',
+                  inset: 0,
+                  color: tempColor,
+                  filter: 'blur(18px)',
+                  opacity: 0.5,
+                  pointerEvents: 'none',
+                  transition: `color ${motion.base}, opacity ${motion.base}`,
+                } }
+              >
+                { formatTemperature(targetTemp, isCelsius) }
+              </Box>
+            ) }
+            <Box
+              sx={ {
+                ...type.hero,
+                position: 'relative',
+                color: isOn ? tempColor : textColor.disabled,
+                transition: `color ${motion.base}`,
+              } }
+            >
+              { isOn ? formatTemperature(targetTemp, isCelsius) : '—' }
+            </Box>
+          </Box>
+
+          <Box sx={ { minWidth: 0, pb: 0.5 } }>
+            <Typography
+              variant="overline"
+              sx={ {
+                display: 'block',
+                color: isOn ? alpha(profile.accent, 0.92) : textColor.tertiary,
+                transition: `color ${motion.base}`,
+              } }
+            >
               { stateLabel }
             </Typography>
             { isOn && (
-              <Typography variant="caption" className="tabular" sx={ { color: textColor.tertiary } }>
+              <Typography
+                className="tabular"
+                sx={ { ...type.labelTight, color: textColor.tertiary, whiteSpace: 'nowrap' } }
+              >
                 now { formatTemperature(currentTemp, isCelsius) }
               </Typography>
             ) }
           </Box>
         </Box>
 
-        <ChevronRight sx={ { color: textColor.tertiary, mb: 1 } } />
+        <ChevronRight
+          sx={ {
+            color: textColor.disabled,
+            mb: 1,
+            flexShrink: 0,
+            transition: `transform ${motion.base}, color ${motion.base}`,
+          } }
+        />
       </ButtonBase>
 
       { /* Footer: inline ±1° control */ }
@@ -257,9 +380,9 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 1,
-            px: 2,
+            px: 2.25,
             pb: 2,
-            pt: 0.5,
+            pt: 0.25,
           } }
         >
           <StepButton

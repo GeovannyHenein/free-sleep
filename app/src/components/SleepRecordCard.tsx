@@ -21,6 +21,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { textColor } from '../designTokens.ts';
 
 
 // Helper to format time
@@ -107,7 +108,7 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
         </IconButton>
       </Box>
 
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 1 } }>
         Sleep Summary
       </Typography>
 

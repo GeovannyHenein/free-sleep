@@ -85,22 +85,8 @@ export default function SideDetailDialog({ side, onClose, refetch }: SideDetailD
             displayCelsius={ settings?.temperatureFormat === 'celsius' || false }
           />
 
-          { /* Tint the power control with the profile accent so the expanded
-               view stays visually tied to whose side it controls. */ }
-          <Box
-            sx={ {
-              '& .MuiButton-outlined': {
-                color: profile!.accent,
-                borderColor: alpha(profile!.accent, 0.35),
-                '&:hover': {
-                  borderColor: alpha(profile!.accent, 0.6),
-                  backgroundColor: alpha(profile!.accent, 0.08),
-                },
-              },
-            } }
-          >
-            <PowerButton side={ side } isOn={ isOn } refetch={ refetch } inline />
-          </Box>
+          { /* PowerButton tints itself from the side's profile accent. */ }
+          <PowerButton side={ side } isOn={ isOn } refetch={ refetch } inline />
         </Box>
       ) }
     </Dialog>

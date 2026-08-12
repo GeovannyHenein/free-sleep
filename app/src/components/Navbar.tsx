@@ -10,6 +10,15 @@ import { useAppStore } from '@state/appStore.tsx';
 import { alpha, useTheme } from '@mui/material/styles';
 import { PAGES } from './pages';
 import Logo from './Logo.tsx';
+import {
+  blur,
+  motion,
+  radius,
+  shadow,
+  surface,
+  surfaceTreatment,
+  textColor,
+} from '../designTokens.ts';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -65,9 +74,10 @@ export default function Navbar() {
         color="transparent"
         sx={ {
           display: { xs: 'none', md: 'flex' },
-          borderTop: `1px solid ${theme.palette.grey[700]}`,
-          backgroundColor: theme.palette.background.default,
-          boxShadow: 'none',
+          // Blur and translucency come from the theme; only the border is set
+          // here so the bar reads as a floating layer over the page.
+          borderTop: `1px solid ${alpha('#FFFFFF', 0.06)}`,
+          boxShadow: `${shadow.hairline}, 0 -8px 32px rgba(0,0,0,0.4)`,
           top: 'auto', // Push it to the bottom
           bottom: 0, // Stick it to the bottom
           left: 0,
@@ -78,17 +88,37 @@ export default function Navbar() {
           <Box sx={ { flexGrow: 1 } }>
             <Logo size={ 34 } />
           </Box>
-          <Box sx={ { display: 'flex', gap: 2 } }>
-            { PAGES.map(({ title, route }) => (
-              <Button
-                key={ route }
-                onClick={ () => handleNavigation(route) }
-                sx={ { color: 'white' } }
-                variant={ pathname === route ? 'outlined' : 'text' }
-              >
-                { title }
-              </Button>
-            )) }
+          { /* Pill-shaped active state rather than an outlined button. */ }
+          <Box sx={ { display: 'flex', gap: 0.5 } }>
+            { PAGES.map(({ title, route }) => {
+              const isActive = pathname === route;
+              return (
+                <Button
+                  key={ route }
+                  onClick={ () => handleNavigation(route) }
+                  variant="text"
+                  sx={ {
+                    borderRadius: `${radius.pill}px`,
+                    px: 2,
+                    color: isActive ? theme.palette.primary.light : textColor.tertiary,
+                    background: isActive ? surfaceTreatment.control : 'none',
+                    backgroundColor: isActive
+                      ? alpha(theme.palette.primary.main, 0.13)
+                      : 'transparent',
+                    boxShadow: isActive ? shadow.hairlineStrong : 'none',
+                    transition: `color ${motion.base}, background-color ${motion.base}`,
+                    '&:hover': {
+                      color: isActive ? theme.palette.primary.light : textColor.primary,
+                      backgroundColor: isActive
+                        ? alpha(theme.palette.primary.main, 0.18)
+                        : alpha('#FFFFFF', 0.04),
+                    },
+                  } }
+                >
+                  { title }
+                </Button>
+              );
+            }) }
           </Box>
         </Toolbar>
       </AppBar>
@@ -114,32 +144,55 @@ export default function Navbar() {
         <Logo size={ 28 } />
       </Box>
 
-      { /* Mobile Bottom Navigation */ }
+      { /* Mobile Bottom Navigation — a floating pill rather than a bar welded
+           to the bottom edge. The active indicator is a single pill that
+           slides between slots instead of each item lighting up separately. */ }
       <Box
         sx={ {
           display: { xs: 'flex', md: 'none' },
-          width: '100%',
           position: 'fixed',
-          bottom: 0,
-          height: '80px',
-          justifyContent: 'space-between',
-          borderTop: `1px solid ${theme.palette.grey[700]}`,
-          backgroundColor: theme.palette.background.default,
+          bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+          left: 12,
+          right: 12,
+          height: 64,
+          borderRadius: `${radius.pill}px`,
+          overflow: 'hidden',
+          border: `1px solid ${alpha('#FFFFFF', 0.08)}`,
+          backgroundColor: alpha(surface.raised, 0.7),
+          backdropFilter: blur.nav,
+          WebkitBackdropFilter: blur.nav,
+          boxShadow: `${shadow.hairlineStrong}, ${shadow.float}`,
           zIndex: 10,
         } }
       >
+        { /* Sliding indicator, positioned by index. */ }
+        <Box
+          aria-hidden
+          sx={ {
+            position: 'absolute',
+            top: 8,
+            bottom: 8,
+            left: 8,
+            width: `calc((100% - 16px) / ${PAGES.length})`,
+            transform: `translateX(${mobileNavValue * 100}%)`,
+            borderRadius: `${radius.pill}px`,
+            background: surfaceTreatment.control,
+            backgroundColor: alpha(theme.palette.primary.main, 0.14),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
+            boxShadow: shadow.hairlineStrong,
+            transition: `transform ${motion.spring}`,
+            pointerEvents: 'none',
+          } }
+        />
         <BottomNavigation
           value={ mobileNavValue }
           onChange={ handleMobileNavChange }
           sx={ {
             width: '100%',
-            backgroundColor: theme.palette.background.default,
-            '& .Mui-selected': {
-              color: theme.palette.grey[100],
-            },
-            '& .MuiBottomNavigationAction-root': {
-              color: theme.palette.grey[500],
-            },
+            height: '100%',
+            backgroundColor: 'transparent',
+            position: 'relative',
+            zIndex: 1,
           } }
         >
           { PAGES.map(({ title, icon }, index) => (
@@ -147,9 +200,14 @@ export default function Navbar() {
               key={ index }
               icon={ icon }
               aria-label={ title }
+              disableRipple
               sx={ {
+                minWidth: 0,
+                color: textColor.disabled,
+                transition: `color ${motion.base}, transform ${motion.press}`,
+                '&:active': { transform: 'scale(0.9)' },
                 '&.Mui-selected': {
-                  color: theme.palette.grey[100],
+                  color: theme.palette.primary.light,
                 },
               } }
             />
