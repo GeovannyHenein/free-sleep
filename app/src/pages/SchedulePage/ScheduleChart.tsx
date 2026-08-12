@@ -8,6 +8,9 @@ import { useDrawingArea } from '@mui/x-charts/hooks';
 import { useScheduleStore } from './scheduleStore.tsx';
 import { DailySchedule, Time } from '../../../../server/src/db/schedulesSchema.ts';
 import { useSettings } from '@api/settings.ts';
+import { useAppStore } from '@state/appStore.tsx';
+import { getProfile } from '../../config/profiles.ts';
+import { thermal } from '../../designTokens.ts';
 import {
   farenheitToCelcius,
   formatTemperature,
@@ -190,7 +193,13 @@ function HorizontalTempGradient({
 export default function TemperatureScheduleChart() {
   const { selectedSchedule } = useScheduleStore();
   const { data: settings } = useSettings();
+  const { side } = useAppStore();
   const theme = useTheme();
+
+  // Warm end of the ramp is tinted with whoever's schedule is on screen, so the
+  // chart reads as belonging to that person; the cool end stays on the shared
+  // thermal blue so temperature still maps to color consistently.
+  const profileAccent = getProfile(side).accent;
 
   const isCelsius = settings?.temperatureFormat === 'celsius';
   const yMin = isCelsius ? MIN_TEMP_C : MIN_TEMP_F;
@@ -272,8 +281,8 @@ export default function TemperatureScheduleChart() {
           idLine={ gradLineId }
           points={ points }
           threshold={ isCelsius ? THRESHOLD_C : THRESHOLD_F }
-          colorCool="#2196f3"
-          colorHot="#d32f2f"
+          colorCool={ thermal.cold }
+          colorHot={ profileAccent }
           areaAlpha={ AREA_ALPHA }
           lineAlpha={ LINE_ALPHA }
         />

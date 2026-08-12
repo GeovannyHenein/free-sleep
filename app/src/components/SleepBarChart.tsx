@@ -4,6 +4,8 @@ import moment from 'moment-timezone';
 import { useTheme, Theme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
+import { useAppStore } from '@state/appStore.tsx';
+import { getProfile } from '../config/profiles.ts';
 
 
 interface SleepBarChartProps {
@@ -190,6 +192,7 @@ function plotSleepRecords({
   xScale,
   yScale,
   theme,
+  accent,
   selectedSleepRecord,
   setSelectedSleepRecord
 }: {
@@ -198,6 +201,8 @@ function plotSleepRecords({
   xScale: d3.ScaleBand<string>;
   yScale: d3.ScaleLinear<number, number>;
   theme: Theme;
+  /** Accent of the side currently being viewed; highlights the selected bar. */
+  accent: string;
   selectedSleepRecord: SleepBarChartProps['selectedSleepRecord'];
   setSelectedSleepRecord: SleepBarChartProps['setSelectedSleepRecord'];
 }) {
@@ -249,7 +254,7 @@ function plotSleepRecords({
           .attr(
             'fill',
             isSelected
-              ? theme.palette.grey[100]
+              ? accent
               : theme.palette.grey[900]
           )
           .attr('rx', 2)
@@ -262,7 +267,7 @@ function plotSleepRecords({
             .attr('x', rectX + rectWidth / 2)
             .attr('y', yScale.range()[1] + 40) // Placing arrow just below the X-axis
             .attr('text-anchor', 'middle')
-            .attr('fill', theme.palette.grey[100])
+            .attr('fill', accent)
             .attr('font-size', '16px')
             .text('▲'); // Unicode up arrow
         }
@@ -283,7 +288,11 @@ export default function SleepBarChart({
 }: SleepBarChartProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const theme = useTheme();
+  const { side } = useAppStore();
 
+  // Sleep records are per-side, so the selected bar is highlighted in that
+  // person's accent rather than plain white.
+  const accent = getProfile(side).accent;
 
   useEffect(() => {
     if (!sleepRecords?.length) return;
@@ -332,10 +341,11 @@ export default function SleepBarChart({
       xScale,
       yScale,
       theme,
+      accent,
       selectedSleepRecord,
       setSelectedSleepRecord
     });
-  }, [sleepRecords, width, height, theme, selectedSleepRecord, setSelectedSleepRecord]);
+  }, [sleepRecords, width, height, theme, accent, selectedSleepRecord, setSelectedSleepRecord]);
   if (sleepRecords?.length === 0) return null;
   return (
     <Box sx={ { 'width': width } }>

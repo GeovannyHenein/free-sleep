@@ -6,7 +6,8 @@ import WarningIcon from '@mui/icons-material/Warning';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { Card, Typography } from '@mui/material';
 import moment from 'moment-timezone';
-import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore.tsx';
+import { getProfile } from '../config/profiles.ts';
 import { VitalsRecord } from '@api/vitals.ts';
 import { useResizeDetector } from 'react-resize-detector';
 
@@ -60,7 +61,7 @@ const Banner = ({ metric }: BannerProps) => {
 
 export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineChartProps) {
   const { width = 300, ref } = useResizeDetector();
-  const theme = useTheme();
+  const { side } = useAppStore();
 
   const cleanedVitalsRecords = useMemo(() => {
     if (!vitalsRecords) return [];
@@ -83,18 +84,20 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
 
   if (!vitalsRecords) return;
 
+  // Vitals are per-side, so tint the series with whoever's data is shown.
+  const accent = getProfile(side).accent;
   const vitalsMap = {
     heart_rate: {
       label: 'Heart rate',
-      color: theme.palette.error.main,
+      color: accent,
     },
     breathing_rate: {
       label: 'Breathing rate',
-      color: theme.palette.primary.main,
+      color: accent,
     },
     hrv: {
       label: 'HRV',
-      color: theme.palette.error.main,
+      color: accent,
     }
   };
   const { label, color } = vitalsMap[metric];
