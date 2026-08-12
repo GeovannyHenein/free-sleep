@@ -3,6 +3,7 @@ import { useServerInfo } from '@api/serverInfo.ts';
 import currentServerInfo from '../../../server/src/serverInfo.json';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import UpdateFreeSleepButton from '../pages/SettingsPage/DeviceSettingsSection/UpdateFreeSleepButton.tsx';
+import { APP_NAME } from '../config/branding.ts';
 
 
 export default function VersionStatus() {
@@ -16,7 +17,7 @@ export default function VersionStatus() {
           <>
             <Alert severity="info">
               <AlertTitle>
-                Free-sleep update available!
+                { APP_NAME } update available!
               </AlertTitle>
               <Typography variant="body2">
                 Latest version: { serverInfo.version }

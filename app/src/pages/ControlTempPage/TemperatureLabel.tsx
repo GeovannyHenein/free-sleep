@@ -4,7 +4,7 @@ import moment from 'moment-timezone';
 
 import { useSchedules } from '@api/schedules.ts';
 import { useSettings } from '@api/settings.ts';
-import { useAppStore } from '@state/appStore.tsx';
+import { useAppStore, type Side } from '@state/appStore.tsx';
 import { formatTemperature } from '@lib/temperatureConversions.ts';
 
 
@@ -15,6 +15,8 @@ type TemperatureLabelProps = {
   currentTargetTemp: number;
   currentTemperatureF: number;
   displayCelsius: boolean;
+  /** Defaults to the globally selected side; pass explicitly to render a specific side. */
+  side?: Side;
 }
 
 
@@ -24,10 +26,12 @@ export default function TemperatureLabel({
   sliderColor,
   currentTargetTemp,
   currentTemperatureF,
-  displayCelsius
+  displayCelsius,
+  side: sideProp,
 }: TemperatureLabelProps) {
   const theme = useTheme();
-  const { side } = useAppStore();
+  const { side: storeSide } = useAppStore();
+  const side = sideProp ?? storeSide;
   const { data: schedules } = useSchedules();
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side].awayMode;

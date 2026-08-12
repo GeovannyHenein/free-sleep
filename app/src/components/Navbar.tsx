@@ -7,9 +7,9 @@ import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '@state/appStore.tsx';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { PAGES } from './pages';
-import freeSleepIcon from '../../public/free-sleep-icon.svg';
+import Logo from './Logo.tsx';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -75,9 +75,9 @@ export default function Navbar() {
         } }
       >
         <Toolbar>
-          <div style={ { flexGrow: 1 } }>
-            <img src={ freeSleepIcon } alt="Join our Discord" width={ 45 } height={ 45 } />
-          </div>
+          <Box sx={ { flexGrow: 1 } }>
+            <Logo size={ 34 } />
+          </Box>
           <Box sx={ { display: 'flex', gap: 2 } }>
             { PAGES.map(({ title, route }) => (
               <Button
@@ -92,6 +92,27 @@ export default function Navbar() {
           </Box>
         </Toolbar>
       </AppBar>
+
+      { /* Mobile header. The bottom bar is icon-only, so without this the
+           branding never appears on a phone. Fixed rather than inline because
+           Layout renders Navbar after the page content. */ }
+      <Box
+        sx={ {
+          display: { xs: 'flex', md: 'none' },
+          alignItems: 'center',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          px: 2,
+          py: 1.25,
+          zIndex: 10,
+          backgroundColor: alpha(theme.palette.background.default, 0.85),
+          backdropFilter: 'blur(12px)',
+        } }
+      >
+        <Logo size={ 28 } />
+      </Box>
 
       { /* Mobile Bottom Navigation */ }
       <Box

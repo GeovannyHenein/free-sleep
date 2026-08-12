@@ -10,6 +10,7 @@ import { useState, forwardRef, type ReactElement, type Ref } from 'react';
 import currentServerInfo from '../../../../../server/src/serverInfo.json';
 
 import { postJobs } from '@api/jobs.ts';
+import { APP_NAME } from '../../../config/branding.ts';
 import { getLatestVersion, useServerInfo } from '@api/serverInfo.ts';
 import { getDeviceStatus } from '@api/deviceStatus.ts';
 
@@ -83,7 +84,7 @@ export default function UpdateFreeSleepButton() {
   return (
     <>
       <Button variant="outlined" onClick={ handleClickOpen } size="small" sx={ { width: '150px' } }>
-        Update free sleep
+        Update { APP_NAME }
       </Button>
       <Dialog
         open={ open }
@@ -98,9 +99,9 @@ export default function UpdateFreeSleepButton() {
             <DialogTitle>{ updateTitle }</DialogTitle>
             :
             isUpdating ?
-              <DialogTitle>Updating Free Sleep...</DialogTitle>
+              <DialogTitle>Updating { APP_NAME }...</DialogTitle>
               :
-              <DialogTitle>Update Free Sleep?</DialogTitle>
+              <DialogTitle>Update { APP_NAME }?</DialogTitle>
         }
 
         <DialogContent>

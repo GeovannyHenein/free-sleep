@@ -1,13 +1,13 @@
 /* eslint-disable react/no-multi-comp */
 import { useMemo } from 'react';
 import Alert, { AlertProps } from '@mui/material/Alert';
-import Link from '@mui/material/Link';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { Card, Typography } from '@mui/material';
 import moment from 'moment-timezone';
-import { useTheme } from '@mui/material/styles';
+import { useAppStore } from '@state/appStore.tsx';
+import { getProfile } from '../config/profiles.ts';
 import { VitalsRecord } from '@api/vitals.ts';
 import { useResizeDetector } from 'react-resize-detector';
 
@@ -39,12 +39,7 @@ const Banner = ({ metric }: BannerProps) => {
     heart_rate: {
       icon: <InfoIcon color='info'/>,
       severity: 'info',
-      text: <Typography>Heart rate data has been validated with six participants, and accuracy may be limited.
-        You can help improve future accuracy by contributing your own data for validation or
-        by experimenting and improving the algorithm yourself.
-        See the <Link href='https://github.com/throwaway31265/free-sleep?tab=readme-ov-file#biometrics-'>documentation</Link>
-        &nbsp;for details on current measurement accuracy.
-      </Typography>,
+      text: <Typography>Heart rate data has been validated with six participants, and accuracy may be limited.</Typography>,
     },
     breathing_rate: {
       icon: <WarningIcon color='warning'/>,
@@ -64,9 +59,18 @@ const Banner = ({ metric }: BannerProps) => {
   );
 };
 
+/**
+ * vitalsRecordSchema stores `timestamp` as epoch *seconds*, but `new Date()`
+ * expects milliseconds — passing seconds straight in put every point within a
+ * few seconds of the epoch, so the time axis rendered the same label on every
+ * tick. Multiply, unless the value is already large enough to be milliseconds.
+ */
+const toDate = (timestamp: number) =>
+  new Date(timestamp < 1e11 ? timestamp * 1000 : timestamp);
+
 export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineChartProps) {
   const { width = 300, ref } = useResizeDetector();
-  const theme = useTheme();
+  const { side } = useAppStore();
 
   const cleanedVitalsRecords = useMemo(() => {
     if (!vitalsRecords) return [];
@@ -77,30 +81,32 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
       .filter(
         (record) =>
           record.timestamp &&
-          !isNaN(new Date(record.timestamp).getTime()) &&
+          !isNaN(toDate(record.timestamp).getTime()) &&
           !isNaN(record[metric])
       )
       .map((record) => ({
         ...record,
-        timestamp: new Date(record.timestamp),
+        timestamp: toDate(record.timestamp),
         [metric]: Number(record[metric]),
       }));
-  }, [vitalsRecords]);
+  }, [vitalsRecords, width, metric]);
 
   if (!vitalsRecords) return;
 
+  // Vitals are per-side, so tint the series with whoever's data is shown.
+  const accent = getProfile(side).accent;
   const vitalsMap = {
     heart_rate: {
       label: 'Heart rate',
-      color: theme.palette.error.main,
+      color: accent,
     },
     breathing_rate: {
       label: 'Breathing rate',
-      color: theme.palette.primary.main,
+      color: accent,
     },
     hrv: {
       label: 'HRV',
-      color: theme.palette.error.main,
+      color: accent,
     }
   };
   const { label, color } = vitalsMap[metric];

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="GBedOS">
+  <title>GBedOS</title>
+  <defs>
+    <!-- Cool-to-warm sweep, mirroring the thermal ramp in designTokens.ts.
+         The gradient alone carries the temperature idea; a literal wave inside
+         the counter turned to mush below ~48px. -->
+    <linearGradient id="gb-thermal" x1="0.08" y1="0.96" x2="0.92" y2="0.04">
+      <stop offset="0%" stop-color="#4DA3F5"/>
+      <stop offset="55%" stop-color="#D9B87A"/>
+      <stop offset="100%" stop-color="#E89A5C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- The G, as an open ring. The arc sweeps counter-clockwise from 1 o'clock
+       round to 4 o'clock, so the aperture sits on the right-hand side. -->
+  <path d="M46.2 19.4 A18.5 18.5 0 1 0 46.2 44.6"
+        fill="none"
+        stroke="url(#gb-thermal)"
+        stroke-width="7"
+        stroke-linecap="round"/>
+
+  <!-- The spur: a vertical drop from the arc's lower terminal up to the
+       crossbar height, then the bar itself running inboard. Drawn as one
+       stroke so the corner stays clean, and offset well below the upper
+       terminal so the two never merge into an ambiguous C. -->
+  <path d="M46.2 44.6 V34 H35.5"
+        fill="none"
+        stroke="url(#gb-thermal)"
+        stroke-width="7"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

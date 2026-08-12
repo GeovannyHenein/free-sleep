@@ -4,6 +4,7 @@ import { Version } from '@api/deviceStatusSchema';
 import VersionStatus from '@components/VersionStatus.tsx';
 import WifiStrength from './WifiStrength.tsx';
 import RebootButton from './RebootButton.tsx';
+import { APP_NAME } from '../../../config/branding.ts';
 
 
 export default function DeviceInfo() {
@@ -24,7 +25,7 @@ export default function DeviceInfo() {
         }
       </Box>
       <Box sx={ { display: 'flex', gap: 1, align: 'center', alignItems: 'center', mb: 1 } }>
-        <Typography variant='body2'>Free Sleep Build</Typography>
+        <Typography variant='body2'>{ APP_NAME } Build</Typography>
         <Chip label={ `v${deviceStatus?.freeSleep?.version}` } size='small'/>
         <Chip label={ deviceStatus?.freeSleep?.branch } size='small'/>
       </Box>

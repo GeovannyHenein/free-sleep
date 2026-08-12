@@ -28,6 +28,10 @@ export default function StatusCard({ job, statusInfo }: StatusCardProps) {
   if (JobSchema.options.includes(job)) {
     isRunnable = true;
   }
+  // `message` carries informational text for healthy services too (e.g.
+  // "All jobs executed successfully overnight"), so only style it as an error
+  // when the status actually says something is wrong.
+  const isFaulted = statusInfo.status === 'failed';
   const [disabled, setDisabled] = useState(false);
   const startJob = () => {
     setDisabled(true);
@@ -90,14 +94,14 @@ export default function StatusCard({ job, statusInfo }: StatusCardProps) {
             statusInfo.message && (
               <Typography
                 variant="body2"
-                color="error"
+                color={ isFaulted ? 'error' : 'text.secondary' }
                 sx={ {
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                   minHeight: 24,
                 } }
               >
-                Error: { statusInfo.message }
+                { isFaulted ? `Error: ${statusInfo.message}` : statusInfo.message }
               </Typography>
             )
           }

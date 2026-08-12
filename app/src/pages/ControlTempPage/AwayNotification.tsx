@@ -1,39 +1,37 @@
 import Alert from '@mui/material/Alert';
 import { Settings } from '@api/settingsSchema.ts';
-import { useAppStore } from '@state/appStore.tsx';
-import { Box } from '@mui/material';
+import { getProfileName } from '../../config/profiles.ts';
 
 type AwayNotificationProps = {
   settings?: Settings;
 }
 
+/**
+ * Away-mode banner. Both sides are visible on the home screen now, so this
+ * names whoever is away rather than saying "this side" / "other side".
+ */
 export default function AwayNotification({ settings }: AwayNotificationProps) {
-  const { side } = useAppStore();
+  if (!settings) return null;
 
-  const otherSide = side === 'right' ? 'left' : 'right';
+  const leftAway = settings.left?.awayMode ?? false;
+  const rightAway = settings.right?.awayMode ?? false;
 
-  if (settings?.[side]?.awayMode && settings?.[otherSide]?.awayMode) {
+  if (!leftAway && !rightAway) return null;
+
+  if (leftAway && rightAway) {
     return (
       <Alert severity="info">
-        Both sides are in away mode, temperature settings will apply to both sides
+        Both sides are in away mode — temperature settings apply to the whole bed.
       </Alert>
     );
   }
-  if (settings?.[otherSide]?.awayMode) {
-    return (
-      <Box>
-        <Alert severity="info">
-          Other side is in away mode, temperature settings will apply to both sides
-        </Alert>
-      </Box>
-    );
-  }
-  if (settings?.[side]?.awayMode) {
-    return (
-      <Alert severity="info">
-        This side is in away mode, temperature control unavailable
-      </Alert>
-    );
-  }
-  return null;
+
+  const awaySide = leftAway ? 'left' : 'right';
+  const awayName = getProfileName(awaySide, settings[awaySide]?.name);
+
+  return (
+    <Alert severity="info">
+      { awayName }&apos;s side is in away mode — temperature settings apply to the whole bed.
+    </Alert>
+  );
 }

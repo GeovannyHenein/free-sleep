@@ -3,7 +3,7 @@ import { Button, Box } from '@mui/material';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
 import { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import { DeepPartial } from 'ts-essentials';
-import { useAppStore } from '@state/appStore.tsx';
+import { useAppStore, type Side } from '@state/appStore.tsx';
 import { useSettings } from '@api/settings.ts';
 import { useState } from 'react';
 import { useServices } from '@api/services.ts';
@@ -15,10 +15,15 @@ import { useControlTempStore } from './controlTempStore.tsx';
 type PowerButtonProps = {
   isOn: boolean;
   refetch: any;
+  /** Defaults to the globally selected side; pass explicitly to control a specific side. */
+  side?: Side;
+  /** Drops the negative top margin used to tuck the button under the slider. */
+  inline?: boolean;
 }
 
-export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
-  const { isUpdating, setIsUpdating, side } = useAppStore();
+export default function PowerButton({ isOn, refetch, side: sideProp, inline = false }: PowerButtonProps) {
+  const { isUpdating, setIsUpdating, side: storeSide } = useAppStore();
+  const side = sideProp ?? storeSide;
   const { data: settings } = useSettings();
   const { data: services } = useServices();
   const setDeviceStatus = useControlTempStore(state => state.setDeviceStatus);
@@ -70,7 +75,7 @@ export default function PowerButton({ isOn, refetch }: PowerButtonProps) {
   if (isInAwayMode) return null;
 
   return (
-    <Box sx={ { mt: -6, display: 'flex', flexDirection: 'column', gap: 2 } }>
+    <Box sx={ { mt: inline ? 0 : -6, display: 'flex', flexDirection: 'column', gap: 2 } }>
       <Button variant="outlined" disabled={ disabled } onClick={ () => handleOnClick(!isOn) }>
         { isOn ? 'Turn off' : 'Turn on' }
       </Button>

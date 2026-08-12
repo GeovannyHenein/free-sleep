@@ -37,6 +37,11 @@ export default function PageContainer({ children, sx, containerProps }: React.Pr
             width: '100%',
             padding: 1,
           },
+          // Clear the fixed mobile brand header, which would otherwise sit on
+          // top of the first card.
+          [theme.breakpoints.down('md')]: {
+            paddingTop: 7,
+          },
           ...sx,
         } }
       >

@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Card, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { LineChart, lineElementClasses, areaElementClasses } from '@mui/x-charts/LineChart';
 import { useResizeDetector } from 'react-resize-detector';
 import moment from 'moment-timezone';
 import type { MovementRecord } from '@api/movement.ts';
+import { useAppStore } from '@state/appStore.tsx';
+import { getProfile } from '../config/profiles.ts';
 
 type MovementChartProps = {
   movementRecords: MovementRecord[];
@@ -91,8 +92,11 @@ export default function MovementAreaChart({
   bucketMs = 60_000, // 1 min buckets
   minActiveMs = 10 * 60_000, // expand active blocks to 10 minutes
 }: MovementChartProps) {
-  const theme = useTheme();
+  const { side } = useAppStore();
   const { width = 360, ref } = useResizeDetector();
+
+  // Movement data is per-side; tint it with that person's accent.
+  const accent = getProfile(side).accent;
 
   const points = useMemo<Pt[]>(() => {
     if (!movementRecords?.length) return [];
@@ -156,8 +160,8 @@ export default function MovementAreaChart({
         margin={ { left: 70, right: 30, top: 10, bottom: 40 } }
         slotProps={ { legend: { hidden: true } } }
         sx={ {
-          [`& .${lineElementClasses.root}`]: { stroke: theme.palette.secondary.dark },
-          [`& .${areaElementClasses.root}`]: { fill: theme.palette.secondary.dark, opacity: 0.70, filter: 'none' },
+          [`& .${lineElementClasses.root}`]: { stroke: accent },
+          [`& .${areaElementClasses.root}`]: { fill: accent, opacity: 0.55, filter: 'none' },
         } }
       />
     </Card>

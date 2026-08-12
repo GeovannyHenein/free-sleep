@@ -120,28 +120,57 @@ export const handlers = [
     await delay(80);
     return HttpResponse.json(updatedRecord);
   }),
-  http.get('/api/metrics/movement', async () => {
-    // const filters = toFilters(request);
-    const records = listMovementRecords();
-    // const filtered = filterByQuery(records, filters, (record: MovementRecord) => record.timestamp * 1000);
+  http.get('/api/metrics/movement', async ({ request }) => {
+    const filters = toFilters(request);
+    const filtered = filterByQuery(
+      listMovementRecords(),
+      filters,
+      (record) => Date.parse(record.timestamp as unknown as string)
+    );
     await delay(120);
-    return HttpResponse.json(records);
+    return HttpResponse.json(filtered);
   }),
-  http.get('/api/metrics/vitals', async () => {
-    // const filters = toFilters(request);
-    const records = listVitalsRecords();
-    // const filtered = filterByQuery(records, filters, (record: VitalsRecord) => record.timestamp * 1000);
+  http.get('/api/metrics/vitals', async ({ request }) => {
+    const filters = toFilters(request);
+    const filtered = filterByQuery(
+      listVitalsRecords(),
+      filters,
+      (record) => record.timestamp * 1000
+    );
     await delay(120);
-    return HttpResponse.json(records);
+    return HttpResponse.json(filtered);
   }),
-  http.get('/api/metrics/vitals/summary', async () => {
+  http.get('/api/metrics/vitals/summary', async ({ request }) => {
+    // Derived from the same records the charts plot, so the summary tiles agree
+    // with the traces and differ between sides.
+    const filters = toFilters(request);
+    const records = filterByQuery(
+      listVitalsRecords(),
+      filters,
+      (record) => record.timestamp * 1000
+    );
     await delay(120);
+
+    if (records.length === 0) {
+      return HttpResponse.json({
+        avgHeartRate: 0,
+        minHeartRate: 0,
+        maxHeartRate: 0,
+        avgHRV: 0,
+        avgBreathingRate: 0,
+      });
+    }
+
+    const mean = (values: number[]) =>
+      Math.round(values.reduce((sum, v) => sum + v, 0) / values.length);
+    const heartRates = records.map((r) => r.heart_rate);
+
     return HttpResponse.json({
-      avgHeartRate: 55,
-      minHeartRate: 45,
-      maxHeartRate: 68,
-      avgHRV: 63,
-      avgBreathingRate: 12,
+      avgHeartRate: mean(heartRates),
+      minHeartRate: Math.min(...heartRates),
+      maxHeartRate: Math.max(...heartRates),
+      avgHRV: mean(records.map((r) => r.hrv)),
+      avgBreathingRate: mean(records.map((r) => r.breathing_rate)),
     });
   }),
   http.post('/api/jobs', async ({ request }) => {

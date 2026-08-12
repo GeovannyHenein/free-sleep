@@ -39,10 +39,13 @@ export default function FeaturesSection() {
 
         <InfoIcon sx={ { color: 'text.secondary' } }/>
 
-        <Typography color='text.secondary'>
+        { /* component="div" on the outer Typography: the default <p> cannot
+             legally contain the nested block below, which trips a React
+             hydration error. */ }
+        <Typography color='text.secondary' component='div'>
           Calculate biometrics for the pod.
           Requires you to run this command on your pod. Once installation completes successfully, you can toggle this on/off.
-          <Typography color='text.secondary' sx={ { fontFamily: 'monospace' } }>
+          <Typography color='text.secondary' component='code' sx={ { display: 'block', mt: 1, fontFamily: 'monospace' } }>
             sh /home/dac/free-sleep/scripts/enable_biometrics.sh
           </Typography>
         </Typography>
@@ -60,7 +63,7 @@ export default function FeaturesSection() {
         label="Enable Sentry error reporting"
       />
       <Typography color='text.secondary'>
-        Help improve stability by sending anonymous error reports to the free-sleep maintainers.
+        Help improve stability by sending anonymous error reports.
       </Typography>
     </Section>
   );
