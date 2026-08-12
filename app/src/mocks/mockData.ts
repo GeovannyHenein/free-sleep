@@ -200,7 +200,7 @@ const createSettings = (): Settings => ({
   temperatureFormat: 'fahrenheit',
   rebootDaily: true,
   left: {
-    name: 'Left side',
+    name: 'Geo',
     awayMode: false,
     scheduleOverrides: {
       temperatureSchedules: { disabled: false, expiresAt: '' },
@@ -226,7 +226,7 @@ const createSettings = (): Settings => ({
     }
   },
   right: {
-    name: 'Right side',
+    name: 'Jess',
     awayMode: false,
     scheduleOverrides: {
       temperatureSchedules: { disabled: false, expiresAt: '' },

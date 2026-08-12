@@ -1,6 +1,6 @@
 import { CircularSliderWithChildren } from 'react-circular-slider-svg';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
-import { useAppStore } from '@state/appStore';
+import { useAppStore, type Side } from '@state/appStore';
 import styles from './Slider.module.scss';
 import TemperatureLabel from './TemperatureLabel.tsx';
 import TemperatureButtons from './TemperatureButtons.tsx';
@@ -16,11 +16,24 @@ type SliderProps = {
   currentTemperatureF: number;
   refetch: any;
   displayCelsius: boolean;
+  /** Defaults to the globally selected side; pass explicitly to control a specific side. */
+  side?: Side;
+  /** Overrides the intrinsic width cap (400px) — used by the compact side panels. */
+  maxWidth?: number;
 }
 
-export default function Slider({ isOn, currentTargetTemp, refetch, currentTemperatureF, displayCelsius }: SliderProps) {
+export default function Slider({
+  isOn,
+  currentTargetTemp,
+  refetch,
+  currentTemperatureF,
+  displayCelsius,
+  side: sideProp,
+  maxWidth = 400,
+}: SliderProps) {
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
-  const { isUpdating, setIsUpdating, side } = useAppStore();
+  const { isUpdating, setIsUpdating, side: storeSide } = useAppStore();
+  const side = sideProp ?? storeSide;
   const { data: settings } = useSettings();
   const isInAwayMode = settings?.[side].awayMode;
   const disabled = isUpdating || isInAwayMode || !isOn;
@@ -59,7 +72,7 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
   return (
     <div
       ref={ ref }
-      style={ { position: 'relative', display: 'inline-block', width: '100%', maxWidth: '400px' } }
+      style={ { position: 'relative', display: 'inline-block', width: '100%', maxWidth: `${maxWidth}px` } }
     >
       { /* Circular Slider */ }
       <div className={ `${styles.Slider} ${disabled && styles.Disabled} ${isHeating && styles.Heating}` }>
@@ -106,12 +119,13 @@ export default function Slider({ isOn, currentTargetTemp, refetch, currentTemper
             currentTargetTemp={ currentTargetTemp }
             currentTemperatureF={ currentTemperatureF }
             displayCelsius={ displayCelsius }
+            side={ side }
           />
         </CircularSliderWithChildren>
       </div>
       {
         isOn && (
-          <TemperatureButtons refetch={ refetch } currentTargetTemp={ currentTargetTemp }/>
+          <TemperatureButtons refetch={ refetch } currentTargetTemp={ currentTargetTemp } side={ side }/>
         ) }
     </div>
   );

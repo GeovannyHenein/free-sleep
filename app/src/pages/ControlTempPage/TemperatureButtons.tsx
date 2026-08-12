@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import { Button, Box } from '@mui/material';
 import { Add, Remove } from '@mui/icons-material';
 import { useControlTempStore } from './controlTempStore.tsx';
-import { useAppStore } from '@state/appStore.tsx';
+import { useAppStore, type Side } from '@state/appStore.tsx';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
 import { useSettings } from '@api/settings.ts';
 import { MIN_TEMP_F, MAX_TEMP_F } from '@lib/temperatureConversions.ts';
@@ -11,11 +11,21 @@ import { MIN_TEMP_F, MAX_TEMP_F } from '@lib/temperatureConversions.ts';
 type TemperatureButtonsProps = {
   refetch: any;
   currentTargetTemp: number;
+  /** Defaults to the globally selected side; pass explicitly to control a specific side. */
+  side?: Side;
+  /** When false, renders inline instead of absolutely positioned over the slider. */
+  overlay?: boolean;
 }
 
 const DEBOUNCE_MS = 2000;
-export default function TemperatureButtons({ refetch, currentTargetTemp }: TemperatureButtonsProps) {
-  const { side, setIsUpdating, isUpdating } = useAppStore();
+export default function TemperatureButtons({
+  refetch,
+  currentTargetTemp,
+  side: sideProp,
+  overlay = true,
+}: TemperatureButtonsProps) {
+  const { side: storeSide, setIsUpdating, isUpdating } = useAppStore();
+  const side = sideProp ?? storeSide;
   const { deviceStatus, setDeviceStatus } = useControlTempStore();
   const { data: settings } = useSettings();
   const theme = useTheme();
@@ -74,15 +84,19 @@ export default function TemperatureButtons({ refetch, currentTargetTemp }: Tempe
   return (
     <Box
       sx={ {
-        top: '75%',
-        position: 'absolute',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '100px',
         width: '100%',
-        marginLeft: 'auto',
-        marginRight: 'auto',
+        ...(overlay
+          ? {
+            top: '75%',
+            position: 'absolute',
+            gap: '100px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }
+          : { gap: 2 }),
       } }
     >
       <Button

@@ -1,87 +1,89 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '@mui/material/Button';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 import AlarmDismissal from './AlarmDismissal.tsx';
 import AlarmNotification from './AlarmNotification.tsx';
 import AwayNotification from './AwayNotification.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
 import PageContainer from '../PageContainer.tsx';
-import PowerButton from './PowerButton.tsx';
 import PrimingNotification from './PrimingNotification.tsx';
-import SideControl from '../../components/SideControl.tsx';
-import Slider from './Slider.tsx';
+import SideCard from './SideCard.tsx';
+import SideDetailDialog from './SideDetailDialog.tsx';
 import WaterNotification from './WaterNotification.tsx';
-import { useAppStore } from '@state/appStore.tsx';
+import { useAppStore, type Side } from '@state/appStore.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
-import { useTheme } from '@mui/material/styles';
+import { textColor } from '../../designTokens.ts';
 
+const SIDES: Side[] = ['left', 'right'];
 
 export default function ControlTempPage() {
   const { isError, refetch, data: deviceStatus } = useDeviceStatus();
   const setDeviceStatus = useControlTempStore(state => state.setDeviceStatus);
   const { data: settings } = useSettings();
-  const { isUpdating, side } = useAppStore();
-  const theme = useTheme();
-
-  const sideStatus = deviceStatus?.[side];
-  const isOn = sideStatus?.isOn || false;
-
-  useEffect(() => {
-    refetch();
-  }, [side]);
+  const { isUpdating } = useAppStore();
+  const [expandedSide, setExpandedSide] = useState<Side | null>(null);
 
   useEffect(() => {
     if (!deviceStatus) return;
     setDeviceStatus(deviceStatus);
   }, [deviceStatus]);
 
+  if (isError) {
+    return (
+      <PageContainer sx={ { maxWidth: '560px' } }>
+        <Typography sx={ { color: textColor.secondary, mb: 2 } }>
+          Couldn&apos;t reach the pod.
+        </Typography>
+        <Button variant="contained" onClick={ () => refetch() } disabled={ isUpdating }>
+          Try again
+        </Button>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer
       sx={ {
-        maxWidth: '500px',
-        [theme.breakpoints.up('md')]: {
-          maxWidth: '400px',
-        },
+        maxWidth: '560px',
+        justifyContent: 'flex-start',
+        gap: 1.5,
       } }
     >
-      <Slider
-        isOn={ isOn }
-        currentTargetTemp={ sideStatus?.targetTemperatureF || 55 }
-        refetch={ refetch }
-        currentTemperatureF={ sideStatus?.currentTemperatureF || 55 }
-        displayCelsius={ settings?.temperatureFormat === 'celsius' || false }
-      />
+      { /* Both sides always visible: stacked on phones, side by side on wide screens. */ }
+      <Box
+        sx={ {
+          display: 'grid',
+          gap: 1.5,
+          width: '100%',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+        } }
+      >
+        { SIDES.map(side => (
+          <ErrorBoundary key={ side } componentName={ `Side card ${side}` }>
+            <SideCard side={ side } refetch={ refetch } onExpand={ setExpandedSide } />
+          </ErrorBoundary>
+        )) }
+      </Box>
 
-      { isError ? (
-        <Button
-          variant="contained"
-          onClick={ () => refetch() }
-          disabled={ isUpdating }
-        >
-          Try again
-        </Button>
-      ) : (
-        <PowerButton isOn={ sideStatus?.isOn || false } refetch={ refetch }/>
-      ) }
-
-      <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1 } }>
-        {
-          deviceStatus?.isPriming && (
-            <PrimingNotification/>
-          )
-        }
+      <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1, width: '100%' } }>
+        { deviceStatus?.isPriming && <PrimingNotification/> }
         <ErrorBoundary componentName='Alarm notification'>
           <AlarmNotification/>
         </ErrorBoundary>
         <AwayNotification settings={ settings }/>
         <WaterNotification/>
       </Box>
+
       <AlarmDismissal refetch={ refetch }/>
-      { isUpdating && <CircularProgress/> }
-      <SideControl showTemp={ true }/>
+
+      <SideDetailDialog
+        side={ expandedSide }
+        onClose={ () => setExpandedSide(null) }
+        refetch={ refetch }
+      />
     </PageContainer>
   );
 }
