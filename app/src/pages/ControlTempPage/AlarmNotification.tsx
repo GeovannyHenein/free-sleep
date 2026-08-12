@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { DayOfWeek } from '../../../../server/src/db/schedulesSchema.ts';
 import AlarmOverride from './AlarmOverride.tsx';
 import AlarmDisabledDialog from './AlarmDisabledDialog.tsx';
+import { textColor } from '../../designTokens.ts';
 
 
 export default function AlarmNotification() {
@@ -70,6 +71,13 @@ export default function AlarmNotification() {
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
+        // A scheduled alarm is ambient information, not a warning. Strip the
+        // alert chrome so it sits quietly under the two cards.
+        backgroundColor: 'transparent',
+        border: 'none',
+        color: textColor.secondary,
+        px: 1,
+        '& .MuiAlert-icon': { color: textColor.tertiary },
         '& .MuiAlert-message': { flexGrow: 1, width: '100%' }
       } }
     >
@@ -93,13 +101,13 @@ export default function AlarmNotification() {
               <Box display='flex' justifyContent='space-between' width='100%' alignItems='center'>
                 <div>
 
-                Alarm is disabled
+                alarm off
                 &nbsp;
                 </div>
                 <Button
                   variant="outlined"
                   size="small"
-                  color="warning"
+                  color="inherit"
                   onClick={ () => setDisabledOpen(true) }
                 >
                   Enable
@@ -111,11 +119,11 @@ export default function AlarmNotification() {
             (
               <>
                 <div>
-                  Alarm at &nbsp;
+                  alarm at &nbsp;
                   <Button
                     variant="outlined"
                     size="small"
-                    color="warning"
+                    color="inherit"
                     onClick={ () => setOverrideOpen(!overrideOpen) }
                   >
                     { scheduledAlarmTimeAmPm }
@@ -126,7 +134,7 @@ export default function AlarmNotification() {
                 <Button
                   variant="outlined"
                   size="small"
-                  color="warning"
+                  color="inherit"
                   onClick={ () => setDisabledOpen(true) }
                 >
                   Disable

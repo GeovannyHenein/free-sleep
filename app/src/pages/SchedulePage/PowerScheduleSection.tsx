@@ -19,7 +19,7 @@ export default function PowerScheduleSection({ displayCelsius }: { displayCelsiu
         <TextField
           label="Power on"
           type="time"
-          variant="standard"
+          variant='outlined'
           value={ selectedSchedule?.power.on || '21:00' }
           disabled={ disabled }
           onChange={ (event) => {

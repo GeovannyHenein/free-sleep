@@ -1,31 +1,37 @@
 /**
  * Design tokens — the single source of truth for the visual language.
  *
- * theme.ts consumes these to build the MUI theme; components should read colors
- * from the theme where possible and reach in here only for things MUI has no
- * slot for (profile accents, elevation surfaces, motion curves).
+ * The governing idea: this is a bedside object, not a dashboard. It is read in
+ * a dark room, briefly, by someone who is either about to sleep or just woke
+ * up. Every value here is chosen to emit as little light as possible while
+ * staying legible, and to feel warm rather than clinical.
+ *
+ * theme.ts consumes these to build the MUI theme; components reach in here for
+ * things MUI has no slot for (profile accents, the ember, motion curves).
  */
 
-// Surfaces — a warm-neutral ramp rather than pure black, so stacked cards
-// read as distinct layers instead of merging into the background.
+// Surfaces. Warm brown-black rather than the usual blue-black — bedrooms are
+// warm, and a cold near-black is what makes dark UIs read as generic.
 export const surface = {
-  base: '#0B0C0E',
-  raised: '#141619',
-  overlay: '#1B1E22',
-  hover: '#22262B',
-  border: '#25292F',
-  borderStrong: '#343A42',
+  base: '#14100E', // page
+  raised: '#1E1815', // cards
+  overlay: '#2A2320', // raised controls, menus, dialogs
+  hover: '#332B27',
+  border: '#2E2622',
+  borderStrong: '#3D3430',
 } as const;
 
 export const textColor = {
-  primary: '#F2F4F7',
-  secondary: '#A2AAB6',
-  tertiary: '#6C7482',
-  disabled: '#454C57',
+  primary: '#EDE6E0', // warm off-white, never pure #FFF
+  secondary: '#9A8F88', // 6.0:1 on the page base
+  // Lightened from #6E645E, which measured 3.29:1 — under the 4.5:1 floor.
+  // This tier carries real content (the side differential, priming status),
+  // so it has to be readable rather than merely present.
+  tertiary: '#8A8078', // 4.8:1
+  disabled: '#5A524D', // non-informational only
 } as const;
 
-// Profile accents. Deliberately low-saturation so two panels can sit next to
-// each other without the screen turning into a color clash.
+// Profile accents — one per person, carried across the whole app.
 export const accent = {
   geo: '#7C9EF5',
   geoSoft: 'rgba(124, 158, 245, 0.14)',
@@ -33,72 +39,40 @@ export const accent = {
   jessSoft: 'rgba(227, 160, 200, 0.14)',
 } as const;
 
-// Thermal ramp — cool to warm. Used by the temperature color helper.
-// Avoids a grey midpoint: the bed's usual 80–90°F range should still read as
-// warm, so the neutral stop leans amber rather than slate.
+// Thermal ramp — cool to warm, used for temperature values only.
 export const thermal = {
-  cold: '#4DA3F5',
-  cool: '#63B4E0',
-  neutral: '#D9B87A',
-  warm: '#E89A5C',
-  hot: '#DE6553',
+  cold: '#5FA8E8',
+  cool: '#7FB4D8',
+  neutral: '#D4B486',
+  warm: '#E0955F',
+  hot: '#D66A55',
 } as const;
 
 export const status = {
-  success: '#5BC98C',
-  warning: '#E3B341',
-  error: '#E5695F',
-  info: '#6EA8F0',
+  success: '#79B88E',
+  warning: '#D9A84E',
+  error: '#D57468',
+  info: '#7FA6D8',
 } as const;
 
+// Generous rounding, following the reference's soft-UI family.
 export const radius = {
-  sm: 10,
-  md: 14,
-  lg: 20,
+  sm: 12,
+  md: 16,
+  lg: 22,
+  xl: 28,
   pill: 999,
 } as const;
 
-// Soft, wide shadows — depth without the heavy Material drop-shadow look.
-// `hairline` is the top inner highlight that makes a surface look like it
-// catches light from above; it does most of the work in selling depth.
+// Shadows are deep and soft. In a dark room the shadow does less work than the
+// light does, so these stay subtle and the ember carries the depth.
 export const shadow = {
-  card: '0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.24)',
-  raised: '0 2px 6px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.32)',
-  float: '0 8px 24px rgba(0, 0, 0, 0.5), 0 24px 64px rgba(0, 0, 0, 0.36)',
-  hairline: 'inset 0 1px 0 rgba(255, 255, 255, 0.06)',
-  hairlineStrong: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-  // Pressed controls sink: the highlight flips to an inner shadow from above.
-  pressed: 'inset 0 2px 6px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(0, 0, 0, 0.3)',
-} as const;
-
-/**
- * Surface treatments. Buttons and cards are built from a vertical gradient
- * plus a top hairline rather than a flat fill — that pairing is what reads as
- * a physical, moulded object instead of a coloured rectangle.
- */
-export const surfaceTreatment = {
-  raised: 'linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.012) 42%, rgba(0,0,0,0.10) 100%)',
-  control: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 50%, rgba(0,0,0,0.14) 100%)',
-  // Frosted glass for cards; pairs with backdropFilter.
-  glass: 'linear-gradient(155deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.015) 38%, rgba(255,255,255,0) 70%)',
-} as const;
-
-export const blur = {
-  glass: 'blur(20px) saturate(140%)',
-  nav: 'blur(28px) saturate(160%)',
-} as const;
-
-/**
- * Motion. Springy curves for anything the user physically manipulates, and a
- * deliberately fast `press` so a tap registers before the finger lifts.
- */
-export const motion = {
-  press: '90ms cubic-bezier(0.4, 0, 0.2, 1)',
-  fast: '140ms cubic-bezier(0.32, 0.72, 0, 1)',
-  base: '240ms cubic-bezier(0.32, 0.72, 0, 1)',
-  slow: '420ms cubic-bezier(0.32, 0.72, 0, 1)',
-  // Slight overshoot — used where an element should feel spring-loaded.
-  spring: '420ms cubic-bezier(0.34, 1.4, 0.64, 1)',
+  card: '0 2px 8px rgba(0, 0, 0, 0.45), 0 12px 32px rgba(0, 0, 0, 0.3)',
+  raised: '0 4px 12px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.35)',
+  // Top hairline: the surface catching what little light there is.
+  hairline: 'inset 0 1px 0 rgba(255, 240, 230, 0.05)',
+  hairlineStrong: 'inset 0 1px 0 rgba(255, 240, 230, 0.09)',
+  pressed: 'inset 0 2px 8px rgba(0, 0, 0, 0.6)',
 } as const;
 
 export function hexToRgba(hex: string, alpha: number) {
@@ -110,60 +84,140 @@ export function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-/** Accent glow behind the hero temperature readout. */
-export const glow = (color: string, intensity = 1) =>
-  `0 0 ${20 * intensity}px ${hexToRgba(color, 0.28 * intensity)}, `
-  + `0 0 ${52 * intensity}px ${hexToRgba(color, 0.13 * intensity)}`;
+/**
+ * Parse `#rgb`, `#rrggbb`, or `rgb(r, g, b)` into channels.
+ *
+ * The thermal helper interpolates and so returns `rgb(...)`, while the token
+ * palette is hex — anything blending the two has to accept both.
+ */
+function parseColor(color: string): [number, number, number] {
+  const rgbMatch = color.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
+  if (rgbMatch) {
+    return [Number(rgbMatch[1]), Number(rgbMatch[2]), Number(rgbMatch[3])];
+  }
+  const h = color.replace('#', '');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ];
+}
+
+/** Blend two colours. `t` of 0 returns `from`, 1 returns `to`. */
+export function mixHex(from: string, to: string, t: number) {
+  const [r1, g1, b1] = parseColor(from);
+  const [r2, g2, b2] = parseColor(to);
+  const ch = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return `rgb(${ch(r1, r2)}, ${ch(g1, g2)}, ${ch(b1, b2)})`;
+}
+
+/**
+ * The ember — the signature element.
+ *
+ * Each side's card is lit from its inner edge, the edge that faces the other
+ * person, mirroring where the two zones meet in the actual bed. The light is
+ * the state: dark when the side is off, steady while holding temperature, and
+ * slowly breathing while the pump is actively working toward a target.
+ *
+ * Colour blends the thermal value toward the person's accent, so temperature
+ * and identity are readable in the same glance without reading a number.
+ */
+export const ember = {
+  /**
+   * The light's colour: mostly the person's accent, pulled a little toward the
+   * current thermal reading.
+   *
+   * Weighted heavily to the accent on purpose. An even blend lands on a
+   * desaturated middle — around 84°F the thermal value is near-neutral, and
+   * mixing that halfway with blue produces grey. Identity has to survive the
+   * blend, so temperature only tints it.
+   */
+  color: (thermalColor: string, accentColor: string) =>
+    mixHex(accentColor, thermalColor, 0.3),
+  /** Breath cycle for a side that is actively heating or cooling. */
+  breathDuration: '3400ms',
+} as const;
+
+/**
+ * Motion. Slow and soft — nothing in a bedroom should snap. The press curve is
+ * quick enough that a tap registers before the finger lifts.
+ */
+export const motion = {
+  press: '110ms cubic-bezier(0.4, 0, 0.2, 1)',
+  fast: '180ms cubic-bezier(0.32, 0.72, 0, 1)',
+  base: '320ms cubic-bezier(0.32, 0.72, 0, 1)',
+  slow: '560ms cubic-bezier(0.32, 0.72, 0, 1)',
+  spring: '440ms cubic-bezier(0.34, 1.28, 0.64, 1)',
+} as const;
 
 export const font = {
+  /** Body and UI. */
   family: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  // Tabular figures keep temperature readouts from shifting width as they tick.
-  numeric: '"Inter", system-ui, -apple-system, sans-serif',
+  /** Temperature and duration readouts only. Rounder, warmer than Inter. */
+  display: '"Instrument Sans", "Inter", system-ui, -apple-system, sans-serif',
 } as const;
 
 /**
  * Type scale.
  *
- * Deliberately bimodal, in the Whoop mould: readouts are very large and very
- * tight, while every supporting label is small, uppercase and widely tracked.
- * The gap between the two is the hierarchy — there is no mid-sized tier
- * competing with the hero number.
+ * Lowercase throughout — no all-caps labels. Small caps read as instrument
+ * annotation, which is the wrong register for a bedroom; sentence case is
+ * quieter and easier to parse half-awake.
  */
 export const type = {
-  hero: {
-    fontSize: 'clamp(2.75rem, 11vw, 3.5rem)',
-    fontWeight: 680,
-    letterSpacing: '-0.045em',
-    lineHeight: 0.95,
-    fontVariantNumeric: 'tabular-nums',
-  },
-  display: {
-    fontSize: '2rem',
-    fontWeight: 640,
+  /** Temperature readout. Instrument Sans, tight, tabular. */
+  reading: {
+    fontFamily: font.display,
+    fontSize: 'clamp(3rem, 13vw, 3.75rem)',
+    fontWeight: 600,
     letterSpacing: '-0.035em',
     lineHeight: 1,
     fontVariantNumeric: 'tabular-nums',
   },
-  metric: {
-    fontSize: '1.375rem',
-    fontWeight: 620,
+  /** Secondary readouts (vitals tiles, durations). */
+  readingSm: {
+    fontFamily: font.display,
+    fontSize: '1.5rem',
+    fontWeight: 600,
     letterSpacing: '-0.02em',
     lineHeight: 1.1,
     fontVariantNumeric: 'tabular-nums',
   },
-  // Small caps used for every supporting label. The wide tracking is what
-  // makes them read as instrument annotations rather than body copy.
-  label: {
-    fontSize: '0.6875rem',
-    fontWeight: 600,
-    letterSpacing: '0.14em',
-    lineHeight: 1.35,
-    textTransform: 'uppercase' as const,
-  },
-  labelTight: {
-    fontSize: '0.75rem',
+  /** A person's name on their card. */
+  name: {
+    fontSize: '0.9375rem',
     fontWeight: 550,
-    letterSpacing: '0.01em',
+    letterSpacing: '-0.005em',
+    lineHeight: 1.3,
+  },
+  /** Status lines: "holding · now 82°". */
+  status: {
+    fontSize: '0.8125rem',
+    fontWeight: 450,
+    letterSpacing: '0',
+    lineHeight: 1.45,
+    fontVariantNumeric: 'tabular-nums',
+  },
+  /** Button and control labels: "cooler", "warmer". */
+  control: {
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    letterSpacing: '0',
+    lineHeight: 1,
+  },
+  /** Section markers. Sentence case, not uppercase. */
+  section: {
+    fontSize: '0.8125rem',
+    fontWeight: 550,
+    letterSpacing: '0',
     lineHeight: 1.4,
+  },
+  /** Smallest supporting text. */
+  caption: {
+    fontSize: '0.75rem',
+    fontWeight: 450,
+    letterSpacing: '0',
+    lineHeight: 1.45,
   },
 } as const;

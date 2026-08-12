@@ -10,15 +10,7 @@ import { useAppStore } from '@state/appStore.tsx';
 import { alpha, useTheme } from '@mui/material/styles';
 import { PAGES } from './pages';
 import Logo from './Logo.tsx';
-import {
-  blur,
-  motion,
-  radius,
-  shadow,
-  surface,
-  surfaceTreatment,
-  textColor,
-} from '../designTokens.ts';
+import { motion, radius, shadow, surface, textColor } from '../designTokens.ts';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -77,7 +69,7 @@ export default function Navbar() {
           // Blur and translucency come from the theme; only the border is set
           // here so the bar reads as a floating layer over the page.
           borderTop: `1px solid ${alpha('#FFFFFF', 0.06)}`,
-          boxShadow: `${shadow.hairline}, 0 -8px 32px rgba(0,0,0,0.4)`,
+          boxShadow: '0 -8px 32px rgba(0,0,0,0.4)',
           top: 'auto', // Push it to the bottom
           bottom: 0, // Stick it to the bottom
           left: 0,
@@ -101,11 +93,10 @@ export default function Navbar() {
                     borderRadius: `${radius.pill}px`,
                     px: 2,
                     color: isActive ? theme.palette.primary.light : textColor.tertiary,
-                    background: isActive ? surfaceTreatment.control : 'none',
                     backgroundColor: isActive
                       ? alpha(theme.palette.primary.main, 0.13)
                       : 'transparent',
-                    boxShadow: isActive ? shadow.hairlineStrong : 'none',
+                    boxShadow: 'none',
                     transition: `color ${motion.base}, background-color ${motion.base}`,
                     '&:hover': {
                       color: isActive ? theme.palette.primary.light : textColor.primary,
@@ -157,11 +148,11 @@ export default function Navbar() {
           height: 64,
           borderRadius: `${radius.pill}px`,
           overflow: 'hidden',
-          border: `1px solid ${alpha('#FFFFFF', 0.08)}`,
-          backgroundColor: alpha(surface.raised, 0.7),
-          backdropFilter: blur.nav,
-          WebkitBackdropFilter: blur.nav,
-          boxShadow: `${shadow.hairlineStrong}, ${shadow.float}`,
+          border: `1px solid ${surface.border}`,
+          backgroundColor: alpha(surface.raised, 0.88),
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          boxShadow: shadow.raised,
           zIndex: 10,
         } }
       >
@@ -176,10 +167,9 @@ export default function Navbar() {
             width: `calc((100% - 16px) / ${PAGES.length})`,
             transform: `translateX(${mobileNavValue * 100}%)`,
             borderRadius: `${radius.pill}px`,
-            background: surfaceTreatment.control,
             backgroundColor: alpha(theme.palette.primary.main, 0.14),
             border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
-            boxShadow: shadow.hairlineStrong,
+            boxShadow: 'none',
             transition: `transform ${motion.spring}`,
             pointerEvents: 'none',
           } }
@@ -203,7 +193,8 @@ export default function Navbar() {
               disableRipple
               sx={ {
                 minWidth: 0,
-                color: textColor.disabled,
+                color: textColor.tertiary,
+                '& .MuiSvgIcon-root': { fontSize: 26 },
                 transition: `color ${motion.base}, transform ${motion.press}`,
                 '&:active': { transform: 'scale(0.9)' },
                 '&.Mui-selected': {

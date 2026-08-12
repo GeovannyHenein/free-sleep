@@ -138,7 +138,7 @@ export default function TemperatureAdjustmentsAccordion({ displayCelsius }: { di
                 <TextField
                   label="Time"
                   type="time"
-                  variant='standard'
+                  variant='outlined'
                   value={ time }
                   onChange={ (event) => handleUpdateTime(time, event.target.value) }
                   error={ !isTimeValid(time) }

@@ -9,6 +9,21 @@ export function formatTemperature(temperature: number, celcius: boolean) {
   return celcius ? `${farenheitToCelcius(temperature)}°C` : `${temperature}°F`;
 }
 
+/**
+ * Temperature split into value and unit, for the `Reading` lockup which sets
+ * the unit small and dropped to the baseline.
+ */
+export function splitTemperature(temperature: number, celcius: boolean) {
+  return celcius
+    ? { value: farenheitToCelcius(temperature), unit: '°c' }
+    : { value: temperature, unit: '°f' };
+}
+
+/** Just the degrees, for inline status lines: "now 82°". */
+export function formatDegrees(temperature: number, celcius: boolean) {
+  return celcius ? `${farenheitToCelcius(temperature)}°` : `${temperature}°`;
+}
+
 
 export const MIN_TEMP_F = 55;
 export const MAX_TEMP_F = 110;
