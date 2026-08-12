@@ -1,7 +1,7 @@
 import React from 'react';
 import { ButtonBase, alpha } from '@mui/material';
 
-import { motion, radius, surface, textColor } from '../../designTokens.ts';
+import { motion, radius, shadow, surface, surfaceTreatment, textColor } from '../../designTokens.ts';
 
 type StepButtonProps = {
   label: string;
@@ -25,18 +25,35 @@ export default function StepButton({
       disabled={ disabled }
       onClick={ onClick }
       sx={ {
-        width: 44,
-        height: 36,
+        width: 48,
+        height: 40,
         borderRadius: `${radius.sm}px`,
-        border: `1px solid ${surface.border}`,
+        border: `1px solid ${alpha('#FFFFFF', 0.07)}`,
+        // Moulded key: gradient for form, top hairline so it catches light.
+        background: surfaceTreatment.control,
         backgroundColor: surface.overlay,
+        boxShadow: `${shadow.hairline}, 0 1px 3px rgba(0,0,0,0.35)`,
         color: textColor.secondary,
-        transition: `background-color ${motion.fast}, border-color ${motion.fast}, color ${motion.fast}`,
+        transition: [
+          `background ${motion.fast}`,
+          `border-color ${motion.fast}`,
+          `color ${motion.fast}`,
+          `box-shadow ${motion.press}`,
+          `transform ${motion.press}`,
+        ].join(', '),
         '&:hover:not(:disabled)': {
-          borderColor: alpha(accent, 0.4),
+          borderColor: alpha(accent, 0.38),
           color: accent,
+          boxShadow: `${shadow.hairlineStrong}, 0 0 14px ${alpha(accent, 0.16)}`,
         },
-        '&:disabled': { opacity: 0.35 },
+        // Sinks into the surface: the highlight flips to an inner shadow.
+        '&:active:not(:disabled)': {
+          transform: 'translateY(1px) scale(0.96)',
+          boxShadow: shadow.pressed,
+          background: 'none',
+          backgroundColor: alpha('#000000', 0.24),
+        },
+        '&:disabled': { opacity: 0.3, boxShadow: 'none' },
       } }
     >
       { children }

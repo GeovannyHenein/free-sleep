@@ -1,11 +1,11 @@
 import { Box, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import moment from 'moment-timezone';
 
 import { useSchedules } from '@api/schedules.ts';
 import { useSettings } from '@api/settings.ts';
 import { useAppStore, type Side } from '@state/appStore.tsx';
 import { formatTemperature } from '@lib/temperatureConversions.ts';
+import { textColor, type } from '../../designTokens.ts';
 
 
 type TemperatureLabelProps = {
@@ -29,7 +29,6 @@ export default function TemperatureLabel({
   displayCelsius,
   side: sideProp,
 }: TemperatureLabelProps) {
-  const theme = useTheme();
   const { side: storeSide } = useAppStore();
   const side = sideProp ?? storeSide;
   const { data: schedules } = useSchedules();
@@ -90,35 +89,50 @@ export default function TemperatureLabel({
               width: '100%',
             } }
           >
+            { /* Small caps label above the readout — recessive by design so
+                 the number is unambiguously the hero. */ }
             <Typography
-              sx={ { textWrap: 'nowrap', textAlign: 'center' } }
-              color={ theme.palette.grey[400] }
+              variant="overline"
+              sx={ { textWrap: 'nowrap', textAlign: 'center', color: textColor.tertiary } }
             >
               { topTitle }
             </Typography>
 
-            { /* Temperature */ }
+            { /* Temperature — the hero, with a blurred halo behind it. */ }
+            <Box sx={ { position: 'relative', mb: 0.75 } }>
+              <Box
+                aria-hidden
+                sx={ {
+                  ...type.hero,
+                  position: 'absolute',
+                  inset: 0,
+                  color: sliderColor,
+                  filter: 'blur(20px)',
+                  opacity: 0.45,
+                  pointerEvents: 'none',
+                } }
+              >
+                { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
+              </Box>
+              <Box sx={ { ...type.hero, position: 'relative', color: sliderColor, textWrap: 'nowrap' } }>
+                { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
+              </Box>
+            </Box>
+
+            { /* Supporting readouts, held well below the hero in the hierarchy. */ }
             <Typography
-              sx={ { textWrap: 'nowrap', mb: .5 } }
-              variant="h2"
-              color={ sliderColor }
+              className="tabular"
+              sx={ { ...type.labelTight, textWrap: 'nowrap', color: textColor.secondary, mb: 0.5 } }
             >
-              { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
-            </Typography>
-            { /* Currently at label */ }
-            <Typography
-              sx={ { textWrap: 'nowrap', mb: 1 } }
-              color={ theme.palette.grey[400] }
-            >
-              { `Currently at ${formatTemperature(currentTemperatureF, displayCelsius)}` }
+              { `Now ${formatTemperature(currentTemperatureF, displayCelsius)}` }
             </Typography>
             {
               power?.enabled && (
                 <Typography
-                  sx={ { textWrap: 'nowrap' } }
-                  color={ theme.palette.grey[500] }
+                  variant="overline"
+                  sx={ { textWrap: 'nowrap', color: textColor.disabled } }
                 >
-                  Turns off at { powerOffTime }
+                  Off at { powerOffTime }
                 </Typography>
               )
             }
@@ -139,19 +153,16 @@ export default function TemperatureLabel({
               width: '100%',
             } }
           >
-            <Typography
-              variant="h3"
-              color={ theme.palette.grey[800] }
-            >
+            <Box sx={ { ...type.hero, color: textColor.disabled, opacity: 0.55 } }>
               Off
-            </Typography>
+            </Box>
             {
               power?.enabled && !isInAwayMode && (
                 <Typography
-                  sx={ { textWrap: 'nowrap' } }
-                  color={ theme.palette.grey[800] }
+                  variant="overline"
+                  sx={ { textWrap: 'nowrap', color: textColor.disabled, mt: 0.5 } }
                 >
-                  Turns on at { formattedTime }
+                  On at { formattedTime }
                 </Typography>
               )
             }

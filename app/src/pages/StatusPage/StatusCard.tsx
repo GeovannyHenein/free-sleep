@@ -47,15 +47,15 @@ export default function StatusCard({ job, statusInfo }: StatusCardProps) {
       <Card
         variant="outlined"
         sx={ {
-          height: '100%', borderRadius: 3,
-          '& .MuiCardHeader-root': { pb: 0.25 },
-          '& .MuiCardContent-root': { pt: 0.75 },
+          height: '100%',
+          '& .MuiCardHeader-root': { pb: 0, pt: 2, px: 2.25 },
+          '& .MuiCardContent-root': { pt: 1, px: 2.25, pb: 2, '&:last-child': { pb: 2 } },
         } }
       >
         <CardHeader
           title={
             <Stack direction="row" spacing={ 1.25 } alignItems="center">
-              <Typography variant="subtitle1" fontWeight={ 700 }>
+              <Typography variant="h6">
                 { statusInfo.name }
               </Typography>
               <StatusChip info={ statusInfo }/>

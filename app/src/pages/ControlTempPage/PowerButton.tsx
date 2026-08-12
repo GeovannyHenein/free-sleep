@@ -1,5 +1,6 @@
 import SearchIcon from '@mui/icons-material/Search';
-import { Button, Box } from '@mui/material';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import { Button, Box, ButtonBase, alpha } from '@mui/material';
 import { postDeviceStatus } from '@api/deviceStatus.ts';
 import { DeviceStatus } from '@api/deviceStatusSchema.ts';
 import { DeepPartial } from 'ts-essentials';
@@ -10,6 +11,15 @@ import { useServices } from '@api/services.ts';
 import { Job, postJobs } from '@api/jobs.ts';
 import AnalyzeSleepNotification from './AnalyzeSleepNotification.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
+import { getProfile } from '../../config/profiles.ts';
+import {
+  motion,
+  radius,
+  shadow,
+  surfaceTreatment,
+  textColor,
+  type,
+} from '../../designTokens.ts';
 
 
 type PowerButtonProps = {
@@ -74,11 +84,53 @@ export default function PowerButton({ isOn, refetch, side: sideProp, inline = fa
   };
   if (isInAwayMode) return null;
 
+  // Tint the control with the accent of whichever side it controls.
+  const activeColor = getProfile(side).accent;
+
   return (
-    <Box sx={ { mt: inline ? 0 : -6, display: 'flex', flexDirection: 'column', gap: 2 } }>
-      <Button variant="outlined" disabled={ disabled } onClick={ () => handleOnClick(!isOn) }>
+    <Box sx={ { mt: inline ? 0 : -6, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' } }>
+      { /* The primary physical control. Built as a moulded key: vertical
+           gradient for form, top hairline so it catches light, and a press
+           that sinks it while the highlight flips to an inner shadow. When
+           on, it carries an accent glow so the state is readable at a glance. */ }
+      <ButtonBase
+        disabled={ disabled }
+        onClick={ () => handleOnClick(!isOn) }
+        aria-label={ isOn ? 'Turn off' : 'Turn on' }
+        sx={ {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.25,
+          px: 3.25,
+          py: 1.5,
+          borderRadius: `${radius.pill}px`,
+          ...type.label,
+          background: isOn
+            ? `linear-gradient(180deg, ${alpha(activeColor, 0.26)} 0%, ${alpha(activeColor, 0.1)} 100%)`
+            : surfaceTreatment.control,
+          backgroundColor: isOn ? 'transparent' : alpha('#000000', 0.3),
+          color: isOn ? activeColor : textColor.secondary,
+          border: `1px solid ${isOn ? alpha(activeColor, 0.4) : alpha('#FFFFFF', 0.08)}`,
+          boxShadow: isOn
+            ? `${shadow.hairlineStrong}, 0 0 22px ${alpha(activeColor, 0.26)}, 0 2px 8px rgba(0,0,0,0.4)`
+            : `${shadow.hairline}, 0 2px 8px rgba(0,0,0,0.35)`,
+          transition: [
+            `background ${motion.base}`,
+            `color ${motion.base}`,
+            `border-color ${motion.base}`,
+            `box-shadow ${motion.base}`,
+            `transform ${motion.press}`,
+          ].join(', '),
+          '&:active:not(:disabled)': {
+            transform: 'translateY(1px) scale(0.97)',
+            boxShadow: shadow.pressed,
+          },
+          '&:disabled': { opacity: 0.4 },
+        } }
+      >
+        <PowerSettingsNewIcon sx={ { fontSize: 18 } } />
         { isOn ? 'Turn off' : 'Turn on' }
-      </Button>
+      </ButtonBase>
       {
         showAnalyzeSleep && !isUpdating && services?.biometrics?.enabled && (
           <Button

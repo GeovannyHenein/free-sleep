@@ -6,6 +6,7 @@ import moment from 'moment-timezone';
 import type { MovementRecord } from '@api/movement.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import { getProfile } from '../config/profiles.ts';
+import { textColor } from '../designTokens.ts';
 
 type MovementChartProps = {
   movementRecords: MovementRecord[];
@@ -126,7 +127,7 @@ export default function MovementAreaChart({
 
   return (
     <Card sx={ { pt: 1, mt: 2, pl: 2 } }>
-      <Typography variant="h6" gutterBottom>{ label }</Typography>
+      <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 1 } }>{ label }</Typography>
 
       <LineChart
         ref={ ref }

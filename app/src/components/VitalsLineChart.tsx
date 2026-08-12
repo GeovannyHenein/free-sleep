@@ -8,6 +8,7 @@ import { Card, Typography } from '@mui/material';
 import moment from 'moment-timezone';
 import { useAppStore } from '@state/appStore.tsx';
 import { getProfile } from '../config/profiles.ts';
+import { textColor } from '../designTokens.ts';
 import { VitalsRecord } from '@api/vitals.ts';
 import { useResizeDetector } from 'react-resize-detector';
 
@@ -114,7 +115,7 @@ export default function VitalsLineChart({ vitalsRecords, metric }: VitalsLineCha
 
   return (
     <Card sx={ { pt: 1, mt: 2, pl: 2, pr: 2, pb: 2 } }>
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 1 } }>
         { label }
       </Typography>
       <LineChart

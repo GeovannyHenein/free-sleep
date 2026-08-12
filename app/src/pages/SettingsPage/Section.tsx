@@ -1,6 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { Typography, Card, CardContent } from '@mui/material';
 
+import { textColor } from '../../designTokens.ts';
 
 
 type SectionProps = PropsWithChildren<{
@@ -10,15 +11,17 @@ type SectionProps = PropsWithChildren<{
 export default function Section({ title, children }: SectionProps) {
   return (
     <Card sx={ { width: '98%', overflowWrap: 'break-word', wordBreak: 'break-word' } }>
-      <CardContent>
+      <CardContent sx={ { p: 2.5, '&:last-child': { pb: 2.5 } } }>
         {
           title && (
-            <>
-              <Typography variant='h6' sx={ { textAlign: 'center' } }>
-                { title }
-              </Typography>
-              <br />
-            </>
+            // Left-aligned small caps rather than a centred heading — reads as
+            // a section marker instead of a page title.
+            <Typography
+              variant="overline"
+              sx={ { display: 'block', color: textColor.tertiary, mb: 2 } }
+            >
+              { title }
+            </Typography>
           )
         }
         { children }

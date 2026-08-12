@@ -25,7 +25,7 @@ export default function StatusPage() {
       } }
     >
       <Stack spacing={ 1 } alignItems="center">
-        <Typography variant="h5" fontWeight={ 800 }>
+        <Typography variant="h4">
           Server Status
         </Typography>
         <Typography
