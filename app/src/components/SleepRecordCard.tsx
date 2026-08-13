@@ -15,13 +15,9 @@ import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 import moment from 'moment-timezone';
 import { deleteSleepRecord } from '@api/sleep.ts';
 import { updateSleepRecord } from '@api/sleep.ts'; // Assuming you have this function
-import BedtimeIcon from '@mui/icons-material/Bedtime';
-import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import EditIcon from '@mui/icons-material/Edit';
-import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
-import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { textColor } from '../designTokens.ts';
+import { textColor, type } from '../designTokens.ts';
 
 
 // Helper to format time
@@ -97,39 +93,63 @@ export default function SleepRecordCard({ sleepRecord, refetch }: SleepRecordPro
   };
 
   return (
-    <Card sx={ { p: 2, backgroundColor: 'background.paper', position: 'relative' } }>
+    <Card sx={ { p: 2.5, position: 'relative' } }>
       { /* Actions: Edit & Delete */ }
-      <Box sx={ { position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 } }>
-        <IconButton onClick={ () => setEditOpen(true) } aria-label="edit">
-          <EditIcon color="primary" />
+      { /* Secondary actions sit back until hovered; delete only takes on its
+           warning colour on interaction, so the card is not permanently
+           marked with a red icon. */ }
+      <Box sx={ { position: 'absolute', top: 10, right: 10, display: 'flex', gap: 0.5 } }>
+        <IconButton
+          onClick={ () => setEditOpen(true) }
+          aria-label="edit this sleep record"
+          size="small"
+          sx={ {
+            color: textColor.tertiary,
+            '&:hover': { color: textColor.primary },
+          } }
+        >
+          <EditIcon fontSize="small" />
         </IconButton>
-        <IconButton onClick={ handleDelete } aria-label="delete">
-          <DeleteIcon color="error" />
+        <IconButton
+          onClick={ handleDelete }
+          aria-label="delete this sleep record"
+          size="small"
+          sx={ {
+            color: textColor.tertiary,
+            '&:hover': { color: 'error.light' },
+          } }
+        >
+          <DeleteIcon fontSize="small" />
         </IconButton>
       </Box>
 
       <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 1 } }>
-        Sleep Summary
+        Sleep summary
       </Typography>
 
-      <Box display="flex" flexDirection="column" gap={ 1 }>
+      { /* Label left, value right — the value carries the weight, the label
+           recedes. Icons dropped: the labels already say what each row is. */ }
+      <Box display="flex" flexDirection="column" gap={ 1.25 }>
         { [
           { label: 'Period', value: `${startDay} - ${endDay}` },
-          { label: 'Bedtime', value: bedtime, icon: <BedtimeIcon fontSize="small" /> },
-          { label: 'Wake time', value: wakeTime, icon: <AccessAlarmIcon fontSize="small" /> },
-          { label: 'Duration', value: sleepDuration, icon: <HourglassBottomIcon fontSize="small" /> },
+          { label: 'Bedtime', value: bedtime },
+          { label: 'Wake time', value: wakeTime },
+          { label: 'Duration', value: sleepDuration },
           {
             label: 'Times exited bed',
-            icon: <TransferWithinAStationIcon fontSize="small" />,
             value: `${sleepRecord.times_exited_bed} ${sleepRecord.times_exited_bed === 1 ? 'time' : 'times'}`,
           },
-        ].map(({ label, value, icon }) => (
-          <Box key={ label } display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center" gap={ 2 }>
-              { icon && <Box display="flex" alignItems="center">{ icon }</Box> }
-              <Typography sx={ { fontWeight: 'bold' } }>{ label }</Typography>
-            </Box>
-            <Typography>{ value }</Typography>
+        ].map(({ label, value }) => (
+          <Box key={ label } display="flex" justifyContent="space-between" alignItems="baseline" gap={ 2 }>
+            <Typography sx={ { ...type.status, color: textColor.tertiary } }>
+              { label }
+            </Typography>
+            <Typography
+              className="tabular"
+              sx={ { ...type.status, color: textColor.primary, textAlign: 'right' } }
+            >
+              { value }
+            </Typography>
           </Box>
         )) }
       </Box>

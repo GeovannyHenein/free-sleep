@@ -112,9 +112,13 @@ export default function SchedulePage() {
         <TemperatureScheduleChart />
       </ErrorBoundary>
 
-      <PowerScheduleSection displayCelsius={ displayCelsius }/>
-      <Box sx={ { mt: 2, display: 'flex', justifyContent: 'space-between', width: '100%', mb: 2 } }>
+      { /* The master switch heads the group it governs, rather than floating
+           beside the save button. */ }
+      <Box sx={ { width: '100%', mt: 1 } }>
         <EnabledSwitch/>
+      </Box>
+      <PowerScheduleSection displayCelsius={ displayCelsius }/>
+      <Box sx={ { display: 'flex', justifyContent: 'flex-end', width: '100%', mb: 1 } }>
         <SaveButton onSave={ handleSave }/>
       </Box>
       <TemperatureAdjustmentsAccordion displayCelsius={ displayCelsius }/>

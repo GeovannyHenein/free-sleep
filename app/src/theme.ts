@@ -126,6 +126,13 @@ const buildComponents = (mode: PaletteMode) => {
       },
     },
     MuiButtonBase: { defaultProps: { disableRipple: true } },
+    MuiCheckbox: {
+      defaultProps: { disableRipple: true },
+      styleOverrides: {
+        // Default is 42px, 2px under the touch-target floor.
+        root: { padding: 10, minWidth: 44, minHeight: 44 },
+      },
+    },
     MuiToggleButtonGroup: {
       styleOverrides: {
         root: {
@@ -146,8 +153,8 @@ const buildComponents = (mode: PaletteMode) => {
         root: {
           textTransform: 'none',
           ...type.control,
-          minHeight: 40,
-          padding: '9px 18px',
+          minHeight: 44,
+          padding: '11px 18px',
           color: textColor.tertiary,
           border: 'none',
           transition: `background-color ${motion.base}, color ${motion.base}`,
@@ -190,6 +197,7 @@ const buildComponents = (mode: PaletteMode) => {
     },
     MuiFormControlLabel: {
       styleOverrides: {
+        root: { minHeight: 44 },
         label: { textTransform: 'none', fontSize: '0.9375rem', fontWeight: 450 },
       },
     },
@@ -281,6 +289,9 @@ const buildComponents = (mode: PaletteMode) => {
     MuiBottomNavigation: {
       styleOverrides: { root: { backgroundColor: 'transparent' } },
     },
+    MuiBottomNavigationAction: {
+      styleOverrides: { root: { minWidth: 48, minHeight: 48 } },
+    },
     MuiChip: {
       styleOverrides: {
         root: { borderRadius: radius.pill, fontWeight: 500, fontSize: '0.75rem' },
@@ -294,9 +305,28 @@ const buildComponents = (mode: PaletteMode) => {
     MuiSwitch: {
       defaultProps: { disableRipple: true },
       styleOverrides: {
-        root: { width: 46, height: 28, padding: 0, margin: 8, overflow: 'visible' },
+        // The visual track is 46x28; padding grows the hit area past the 44px
+        // minimum without changing how it looks.
+        // Visual track is 46x28. The hidden input is stretched vertically so
+        // the actual tap area clears the 44px minimum without changing how
+        // the switch looks.
+        root: {
+          width: 46,
+          height: 28,
+          padding: 0,
+          margin: 8,
+          overflow: 'visible',
+          '& .MuiSwitch-input': {
+            top: -8,
+            height: 44,
+            width: '100%',
+            left: 0,
+          },
+        },
         switchBase: ({ theme }) => ({
           padding: 3,
+          // Hit area is expanded via the wrapper below; this keeps the visual
+          // thumb where it is.
           transition: `transform ${motion.spring}`,
           '&.Mui-checked': {
             transform: 'translateX(18px)',

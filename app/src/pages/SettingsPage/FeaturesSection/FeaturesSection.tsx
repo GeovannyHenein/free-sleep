@@ -63,7 +63,7 @@ export default function FeaturesSection() {
             ...type.caption,
             color: textColor.secondary,
             borderRadius: `${radius.sm}px`,
-            minHeight: 36,
+            minHeight: 44,
             px: 1,
             ml: -1,
             '&:hover': { color: textColor.primary },
