@@ -166,12 +166,19 @@ export const font = {
  * quieter and easier to parse half-awake.
  */
 export const type = {
-  /** Temperature readout. Instrument Sans, tight, tabular. */
+  /**
+   * Temperature readout. Instrument Sans, tight, tabular.
+   *
+   * 2.5rem/40px. An earlier pass ran this up to 60px, which pushed each card
+   * to 233px — 57% of a 812px viewport for the two of them, against 191px in
+   * the pre-redesign build. The readout is still comfortably the largest thing
+   * on screen at this size; the extra 20px was buying nothing.
+   */
   reading: {
     fontFamily: font.display,
-    fontSize: 'clamp(3rem, 13vw, 3.75rem)',
+    fontSize: '2.5rem',
     fontWeight: 600,
-    letterSpacing: '-0.035em',
+    letterSpacing: '-0.03em',
     lineHeight: 1,
     fontVariantNumeric: 'tabular-nums',
   },

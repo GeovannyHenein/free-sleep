@@ -214,9 +214,9 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          pl: 3,
-          pr: 2,
-          pt: 2.5,
+          pl: 2.5,
+          pr: 1.5,
+          pt: 1,
           pb: 0.5,
         } }
       >
@@ -252,9 +252,9 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           width: '100%',
           justifyContent: 'flex-start',
           textAlign: 'left',
-          pl: 3,
-          pr: 2,
-          pb: 2,
+          pl: 2.5,
+          pr: 1.5,
+          pb: 1.25,
           borderRadius: 0,
           transition: `background-color ${motion.fast}`,
           '&:hover': { backgroundColor: alpha('#FFFFFF', 0.02) },
@@ -298,7 +298,7 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
             gap: 1,
             pl: 2.5,
             pr: 2.5,
-            pb: 2.5,
+            pb: 1.75,
           } }
         >
           <StepButton
