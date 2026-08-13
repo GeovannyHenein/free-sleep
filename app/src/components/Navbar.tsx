@@ -10,7 +10,7 @@ import { useAppStore } from '@state/appStore.tsx';
 import { alpha, useTheme } from '@mui/material/styles';
 import { PAGES } from './pages';
 import Logo from './Logo.tsx';
-import { motion, radius, shadow, surface, textColor } from '../designTokens.ts';
+import { motion, radius, surface, textColor } from '../designTokens.ts';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -125,7 +125,7 @@ export default function Navbar() {
           top: 0,
           left: 0,
           right: 0,
-          px: 2,
+          px: 1,
           py: 1.25,
           zIndex: 10,
           backgroundColor: alpha(theme.palette.background.default, 0.85),
@@ -135,45 +135,24 @@ export default function Navbar() {
         <Logo size={ 28 } />
       </Box>
 
-      { /* Mobile Bottom Navigation — a floating pill rather than a bar welded
-           to the bottom edge. The active indicator is a single pill that
-           slides between slots instead of each item lighting up separately. */ }
+      { /* Mobile Bottom Navigation — bare icons on the page, no container.
+           The active destination is marked by accent colour alone. */ }
       <Box
         sx={ {
           display: { xs: 'flex', md: 'none' },
           position: 'fixed',
-          bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-          left: 12,
-          right: 12,
-          height: 64,
-          borderRadius: `${radius.pill}px`,
-          overflow: 'hidden',
-          border: `1px solid ${surface.border}`,
-          backgroundColor: alpha(surface.raised, 0.88),
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: shadow.raised,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          // No container: the icons sit directly on the page, with a short
+          // fade so content scrolling underneath dissolves rather than
+          // colliding with a hard edge.
+          background: `linear-gradient(to top, ${surface.base} 55%, ${alpha(surface.base, 0)} 100%)`,
           zIndex: 10,
         } }
       >
-        { /* Sliding indicator, positioned by index. */ }
-        <Box
-          aria-hidden
-          sx={ {
-            position: 'absolute',
-            top: 8,
-            bottom: 8,
-            left: 8,
-            width: `calc((100% - 16px) / ${PAGES.length})`,
-            transform: `translateX(${mobileNavValue * 100}%)`,
-            borderRadius: `${radius.pill}px`,
-            backgroundColor: alpha(theme.palette.primary.main, 0.14),
-            border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
-            boxShadow: 'none',
-            transition: `transform ${motion.spring}`,
-            pointerEvents: 'none',
-          } }
-        />
         <BottomNavigation
           value={ mobileNavValue }
           onChange={ handleMobileNavChange }
@@ -193,12 +172,13 @@ export default function Navbar() {
               disableRipple
               sx={ {
                 minWidth: 0,
-                color: textColor.tertiary,
-                '& .MuiSvgIcon-root': { fontSize: 26 },
+                color: textColor.disabled,
+                '& .MuiSvgIcon-root': { fontSize: 24 },
                 transition: `color ${motion.base}, transform ${motion.press}`,
                 '&:active': { transform: 'scale(0.9)' },
+                // Active state is colour alone — no pill, no background.
                 '&.Mui-selected': {
-                  color: theme.palette.primary.light,
+                  color: theme.palette.primary.main,
                 },
               } }
             />

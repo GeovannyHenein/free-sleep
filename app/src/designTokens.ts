@@ -10,25 +10,30 @@
  * things MUI has no slot for (profile accents, the ember, motion curves).
  */
 
-// Surfaces. Warm brown-black rather than the usual blue-black — bedrooms are
-// warm, and a cold near-black is what makes dark UIs read as generic.
+/**
+ * Surfaces.
+ *
+ * Pure black page with near-black cards, in the Whoop mould: depth comes from
+ * the fill difference alone, with no borders. On OLED the black is genuinely
+ * off, so a card reads as a lit panel floating on nothing.
+ */
 export const surface = {
-  base: '#14100E', // page
-  raised: '#1E1815', // cards
-  overlay: '#2A2320', // raised controls, menus, dialogs
-  hover: '#332B27',
-  border: '#2E2622',
-  borderStrong: '#3D3430',
+  base: '#000000', // page — true black
+  raised: '#111111', // cards
+  overlay: '#1A1A1A', // controls sitting on a card
+  hover: '#222222',
+  border: '#1F1F1F', // used sparingly; cards themselves are borderless
+  borderStrong: '#2E2E2E',
 } as const;
 
 export const textColor = {
-  primary: '#EDE6E0', // warm off-white, never pure #FFF
-  secondary: '#9A8F88', // 6.0:1 on the page base
-  // Lightened from #6E645E, which measured 3.29:1 — under the 4.5:1 floor.
-  // This tier carries real content (the side differential, priming status),
-  // so it has to be readable rather than merely present.
-  tertiary: '#8A8078', // 4.8:1
-  disabled: '#5A524D', // non-informational only
+  primary: '#FFFFFF',
+  secondary: '#9E9E9E', // 6.6:1 on black
+  // Carries real content (the side differential, priming status), so it has
+  // to clear 4.5:1 — and against the #111 card, not just the page. #7A7A7A
+  // measured 4.89 on black but only 4.40 on a card, so it is nudged up.
+  tertiary: '#7E7E7E', // 5.1:1 on page, 4.6:1 on card
+  disabled: '#4A4A4A', // non-informational only
 } as const;
 
 // Profile accents — one per person, carried across the whole app.
@@ -176,9 +181,11 @@ export const type = {
    */
   reading: {
     fontFamily: font.display,
-    fontSize: '2.5rem',
-    fontWeight: 600,
-    letterSpacing: '-0.03em',
+    // Sized to sit inside the 104px ring with clearance. Larger than this and
+    // the ring has to grow, which pushed the card past 70% of the viewport.
+    fontSize: '2.375rem',
+    fontWeight: 700,
+    letterSpacing: '-0.04em',
     lineHeight: 1,
     fontVariantNumeric: 'tabular-nums',
   },
@@ -191,30 +198,44 @@ export const type = {
     lineHeight: 1.1,
     fontVariantNumeric: 'tabular-nums',
   },
-  /** A person's name on their card. */
+  /**
+   * A person's name on their card. Deliberately small and quiet — the number
+   * is the only dominant element on the card.
+   */
   name: {
-    fontSize: '0.9375rem',
-    fontWeight: 550,
-    letterSpacing: '-0.005em',
+    fontFamily: font.family,
+    fontSize: '0.8125rem',
+    fontWeight: 500,
+    letterSpacing: '0',
     lineHeight: 1.3,
   },
   /** Status lines: "holding · now 82°". */
   status: {
-    fontSize: '0.8125rem',
-    fontWeight: 450,
+    fontFamily: font.family,
+    fontSize: '0.75rem',
+    fontWeight: 400,
     letterSpacing: '0',
-    lineHeight: 1.45,
+    lineHeight: 1.4,
     fontVariantNumeric: 'tabular-nums',
   },
-  /** Button and control labels: "cooler", "warmer". */
+  /**
+   * Button and control labels: "cooler", "warmer".
+   *
+   * fontFamily is explicit on every token below. Typography inherits the theme
+   * font, but raw ButtonBase/Box elements styled from these tokens do not —
+   * they were falling back to the browser default (Arial), which put the most
+   * frequently used controls in the app outside the type system.
+   */
   control: {
-    fontSize: '0.875rem',
+    fontFamily: font.family,
+    fontSize: '0.8125rem',
     fontWeight: 500,
     letterSpacing: '0',
     lineHeight: 1,
   },
   /** Section markers. Sentence case, not uppercase. */
   section: {
+    fontFamily: font.family,
     fontSize: '0.8125rem',
     fontWeight: 550,
     letterSpacing: '0',
@@ -222,9 +243,10 @@ export const type = {
   },
   /** Smallest supporting text. */
   caption: {
-    fontSize: '0.75rem',
-    fontWeight: 450,
+    fontFamily: font.family,
+    fontSize: '0.6875rem',
+    fontWeight: 400,
     letterSpacing: '0',
-    lineHeight: 1.45,
+    lineHeight: 1.4,
   },
 } as const;

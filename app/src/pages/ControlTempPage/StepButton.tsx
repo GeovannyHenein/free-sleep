@@ -42,12 +42,15 @@ export default function StepButton({
         display: 'flex',
         alignItems: 'center',
         gap: 0.25,
-        flex: 1,
+        // Sized to the label rather than stretched across the card: these are
+        // secondary to the readout and should not compete with it.
+        flex: '0 1 auto',
+        minWidth: 96,
         minHeight: 44,
-        px: 1.75,
+        px: 1.5,
         borderRadius: `${radius.pill}px`,
         backgroundColor: surface.overlay,
-        color: textColor.secondary,
+        color: textColor.tertiary,
         transition: [
           `background-color ${motion.fast}`,
           `color ${motion.fast}`,

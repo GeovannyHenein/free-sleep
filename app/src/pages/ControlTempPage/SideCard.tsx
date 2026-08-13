@@ -1,4 +1,4 @@
-import { Box, ButtonBase, CircularProgress, Typography, alpha } from '@mui/material';
+import { Box, ButtonBase, Typography, alpha } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import moment from 'moment-timezone';
 
@@ -9,12 +9,12 @@ import { useAppStore, type Side } from '@state/appStore.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
 import StepButton from './StepButton.tsx';
 import Reading from '@components/Reading.tsx';
+import TemperatureRing from '@components/TemperatureRing.tsx';
 import { getProfile, getProfileName } from '../../config/profiles.ts';
 import {
   ember,
   motion,
   radius,
-  shadow,
   surface,
   textColor,
   type,
@@ -171,76 +171,23 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
         position: 'relative',
         borderRadius: `${radius.xl}px`,
         backgroundColor: surface.raised,
-        border: `1px solid ${isOn ? alpha(emberColor, 0.16) : surface.border}`,
-        boxShadow: isOn
-          ? `${shadow.card}, 0 0 40px ${alpha(emberColor, 0.06)}`
-          : shadow.card,
+        // Borderless: depth comes from the fill sitting on pure black, the
+        // way a Whoop card does. A border would flatten it back into a box.
         overflow: 'hidden',
-        transition: `border-color ${motion.slow}, box-shadow ${motion.slow}`,
+        transition: `background-color ${motion.slow}`,
       } }
     >
-      { /* The ember. A hard-edged bar on the card's inner edge plus a soft
-           bleed inward — a heating element seen through fabric, not a border.
-           Breathes while the pump is working, steady while holding. */ }
-      <Box
-        aria-hidden
-        sx={ {
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 3,
-          backgroundColor: isOn ? emberColor : surface.border,
-          opacity: isOn ? 1 : 0.5,
-          transition: `background-color ${motion.slow}, opacity ${motion.slow}`,
-          ...(isOn && isWorking && {
-            animation: `gbedos-ember ${ember.breathDuration} ease-in-out infinite`,
-          }),
-          '@keyframes gbedos-ember': {
-            '0%, 100%': { opacity: 1 },
-            '50%': { opacity: 0.42 },
-          },
-        } }
-      />
-      <Box
-        aria-hidden
-        sx={ {
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          // Wide and soft: light spilling across the card from the element at
-          // its edge, falling off well before the far side.
-          width: '62%',
-          pointerEvents: 'none',
-          background: isOn
-            ? `linear-gradient(90deg, ${alpha(emberColor, 0.3)} 0%, ${alpha(emberColor, 0.1)} 32%, transparent 100%)`
-            : 'none',
-          transition: `background ${motion.slow}`,
-          ...(isOn && isWorking && {
-            animation: `gbedos-ember-bleed ${ember.breathDuration} ease-in-out infinite`,
-          }),
-          '@keyframes gbedos-ember-bleed': {
-            '0%, 100%': { opacity: 1 },
-            '50%': { opacity: 0.4 },
-          },
-        } }
-      />
-
-      { /* Header: name and power state */ }
+      { /* Header: name, and the power state as a small recessive control. */ }
       <Box
         sx={ {
-          position: 'relative',
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
-          pl: 2.5,
-          pr: 1.5,
-          pt: 1,
-          pb: 0.5,
+          gap: 1,
+          px: 2,
+          pt: 1.75,
         } }
       >
-        <Typography sx={ { ...type.name, color: textColor.primary, flexGrow: 1 } }>
+        <Typography sx={ { ...type.name, color: textColor.secondary, flexGrow: 1 } }>
           { name }
         </Typography>
 
@@ -249,74 +196,79 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           disabled={ isUpdating || isAway }
           aria-label={ `turn ${name}'s side ${isOn ? 'off' : 'on'}` }
           sx={ {
-            ...type.control,
+            ...type.caption,
+            // Deliberately small: the number is the only dominant element, so
+            // the power state reads as an annotation rather than a button.
             minHeight: 44,
-            px: 2,
-            borderRadius: `${radius.pill}px`,
+            px: 1,
             color: isOn ? emberColor : textColor.tertiary,
-            transition: `color ${motion.base}, background-color ${motion.fast}`,
-            '&:hover:not(:disabled)': { backgroundColor: alpha('#FFFFFF', 0.04) },
-            '&:disabled': { opacity: 0.4 },
+            transition: `color ${motion.base}`,
+            '&:disabled': { opacity: 0.5 },
           } }
         >
           { isAway ? 'away' : isOn ? 'warm' : 'off' }
         </ButtonBase>
       </Box>
 
-      { /* Reading. Tapping opens the full slider. */ }
+      { /* The ring is the card. Tapping it opens the full slider. */ }
       <ButtonBase
         onClick={ () => onExpand(side) }
         aria-label={ `open full temperature control for ${name}` }
         sx={ {
-          position: 'relative',
           width: '100%',
-          justifyContent: 'flex-start',
-          textAlign: 'left',
-          pl: 2.5,
-          pr: 1.5,
-          pb: 1.25,
+          flexDirection: 'column',
+          gap: 0.75,
+          pt: 0.5,
+          pb: 2,
           borderRadius: 0,
-          transition: `background-color ${motion.fast}`,
-          '&:hover': { backgroundColor: alpha('#FFFFFF', 0.02) },
         } }
       >
-        <Box>
-          <Box
-            sx={ {
-              transition: `transform ${motion.spring}`,
-              transform: nudge === 0 ? 'none' : `translateY(${nudge > 0 ? -4 : 4}px)`,
-            } }
-          >
+        <Box
+          sx={ {
+            transition: `transform ${motion.spring}`,
+            transform: nudge === 0 ? 'none' : `translateY(${nudge > 0 ? -4 : 4}px)`,
+            // A soft bloom behind the ring, in the side's accent. This is what
+            // carries the colour now that the card itself is borderless.
+            ...(isOn && {
+              filter: `drop-shadow(0 0 24px ${alpha(emberColor, 0.28)})`,
+            }),
+            ...(isOn && isWorking && {
+              animation: `gbedos-breathe ${ember.breathDuration} ease-in-out infinite`,
+            }),
+            '@keyframes gbedos-breathe': {
+              '0%, 100%': { opacity: 1 },
+              '50%': { opacity: 0.72 },
+            },
+          } }
+        >
+          <TemperatureRing targetF={ targetTemp } color={ emberColor } active={ isOn }>
             <Reading
               value={ isOn ? tempValue : '—' }
               unit={ isOn ? tempUnit : undefined }
               color={ isOn ? textColor.primary : textColor.disabled }
               label={ isOn ? `${tempValue}${tempUnit}` : 'off' }
             />
-          </Box>
-
-          { /* One status line. */ }
-          <Typography
-            className="tabular"
-            sx={ { ...type.status, color: textColor.secondary, mt: 0.5 } }
-          >
-            { statusLine }
-          </Typography>
+          </TemperatureRing>
         </Box>
+
+        <Typography
+          className="tabular"
+          sx={ { ...type.status, color: textColor.tertiary } }
+        >
+          { statusLine }
+        </Typography>
       </ButtonBase>
 
-      { /* Named controls rather than symbols — easier to hit and to read
-           half-asleep than a bare − / +. */ }
+      { /* Small, quiet stepper controls. */ }
       { !isAway && (
         <Box
           sx={ {
-            position: 'relative',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: 1,
-            pl: 2.5,
-            pr: 2.5,
-            pb: 1.75,
+            px: 2,
+            pb: 2,
           } }
         >
           <StepButton
@@ -337,9 +289,6 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           >
             warmer
           </StepButton>
-          { isUpdating && (
-            <CircularProgress size={ 14 } sx={ { color: textColor.tertiary, ml: 0.5 } } />
-          ) }
         </Box>
       ) }
     </Box>

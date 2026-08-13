@@ -206,12 +206,14 @@ const buildComponents = (mode: PaletteMode) => {
         root: {
           backgroundImage: 'none',
           backgroundColor: paperBg,
-          border: `1px solid ${borderColor}`,
+          border: isDark ? 'none' : `1px solid ${borderColor}`,
           boxShadow: 'none',
           borderRadius: radius.lg,
         },
       },
     },
+    // Borderless in dark mode: the fill difference against pure black is the
+    // only depth cue, which is what keeps the surface from reading as a box.
     MuiCard: {
       styleOverrides: {
         root: {
@@ -219,8 +221,8 @@ const buildComponents = (mode: PaletteMode) => {
           borderRadius: radius.xl,
           backgroundColor: paperBg,
           backgroundImage: 'none',
-          border: `1px solid ${borderColor}`,
-          boxShadow: isDark ? shadow.card : 'none',
+          border: isDark ? 'none' : `1px solid ${borderColor}`,
+          boxShadow: 'none',
         },
       },
     },
@@ -317,17 +319,16 @@ const buildComponents = (mode: PaletteMode) => {
           margin: 8,
           overflow: 'visible',
           // The hidden input lives inside switchBase, which is 28px tall and
-          // translates 18px when checked. Oversizing it here gives a tap area
-          // that comfortably clears 44px in both states; it does travel with
-          // the thumb, but at 84x44 over a 46x28 track it still covers the
-          // whole control either way. (Repositioning switchBase to stop the
-          // travel collapses the track — the thumb is absolutely positioned
-          // against it.)
+          // translates 18px when checked. Grow it vertically to clear the 44px
+          // touch floor, and widen it just enough to cover the 46px track —
+          // 84px overflowed the viewport when a switch sat near the right
+          // edge. (Repositioning switchBase to stop the travel collapses the
+          // track: the thumb is absolutely positioned against it.)
           '& .MuiSwitch-input': {
             top: -8,
-            left: -20,
+            left: -6,
             height: 44,
-            width: 84,
+            width: 52,
           },
         },
         switchBase: ({ theme }) => ({
