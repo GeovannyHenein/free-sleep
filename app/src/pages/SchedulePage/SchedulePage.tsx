@@ -10,7 +10,7 @@ import DayTabs from './DayTabs.tsx';
 import EnabledSwitch from './EnabledSwitch.tsx';
 import PageContainer from '../PageContainer.tsx';
 import SaveButton from './SaveButton.tsx';
-import SideControl from '../../components/SideControl.tsx';
+import ScheduleContextBar from './ScheduleContextBar.tsx';
 import PowerScheduleSection from './PowerScheduleSection.tsx';
 import TemperatureAdjustmentsAccordion from './TemperatureAdjustmentsAccordion.tsx';
 import { DayOfWeek, Schedules } from '@api/schedulesSchema.ts';
@@ -22,6 +22,7 @@ import { useSettings } from '@api/settings';
 import { LOWERCASE_DAYS } from './days.ts';
 import TemperatureScheduleChart from './ScheduleChart.tsx';
 import ErrorBoundary from '@components/ErrorBoundary.tsx';
+import { surface } from '../../designTokens.ts';
 
 
 const getAdjustedDayOfWeek = (): DayOfWeek => {
@@ -102,12 +103,28 @@ export default function SchedulePage() {
         width: '100%',
         maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
-        mb: 15,
+        // Padding, not margin: this page can grow tall when the accordions are
+        // expanded, and a bottom margin left the last "apply to other days"
+        // checkboxes below the scrollable area and unreachable.
+        pb: 'calc(120px + env(safe-area-inset-bottom, 0px))',
       } }
     >
-      <SideControl/>
-
-      <DayTabs/>
+      { /* Person and day travel together and stay pinned: without this, both
+           dimensions of "what am I editing" scroll away before the alarm and
+           temperature sections. */ }
+      <Box
+        sx={ {
+          position: 'sticky',
+          top: 48,
+          zIndex: 5,
+          width: '100%',
+          pb: 1,
+          backgroundColor: surface.base,
+        } }
+      >
+        <ScheduleContextBar/>
+        <DayTabs/>
+      </Box>
       <ErrorBoundary componentName='Scheduling chart'>
         <TemperatureScheduleChart />
       </ErrorBoundary>

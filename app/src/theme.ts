@@ -318,22 +318,21 @@ const buildComponents = (mode: PaletteMode) => {
           padding: 0,
           margin: 8,
           overflow: 'visible',
-          // The hidden input lives inside switchBase, which is 28px tall and
-          // translates 18px when checked. Grow it vertically to clear the 44px
-          // touch floor, and widen it just enough to cover the 46px track —
-          // 84px overflowed the viewport when a switch sat near the right
-          // edge. (Repositioning switchBase to stop the travel collapses the
-          // track: the thumb is absolutely positioned against it.)
+        },
+        switchBase: ({ theme }) => ({
+          padding: 3,
+          transition: `transform ${motion.spring}`,
+          // MUI's own switchBase rule sets the hidden input to width: 300%,
+          // which on a 28px base is 84px — wide enough to push the page into
+          // horizontal overflow when a switch sits near the right edge. It has
+          // to be overridden here rather than at the root, where it loses on
+          // specificity. Height still clears the 44px touch floor.
           '& .MuiSwitch-input': {
             top: -8,
             left: -6,
             height: 44,
             width: 52,
           },
-        },
-        switchBase: ({ theme }) => ({
-          padding: 3,
-          transition: `transform ${motion.spring}`,
           '&.Mui-checked': {
             transform: 'translateX(18px)',
             color: '#FFFFFF',

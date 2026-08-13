@@ -21,7 +21,7 @@ export default function StatusPage() {
         width: '100%',
         maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
-        mb: 15,
+        pb: 'calc(120px + env(safe-area-inset-bottom, 0px))',
       } }
     >
       { /* Left-aligned to match every other page; the centred heading was the
