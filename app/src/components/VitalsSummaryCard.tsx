@@ -25,14 +25,14 @@ type TileProps = {
  */
 const Tile = ({ title, value, unit }: TileProps) => (
   <Box key={ title } flex={ 1 } minWidth="30%">
-    <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 0.25 } }>
+    <Typography variant="caption" sx={ { display: 'block', color: textColor.tertiary, mb: 0.25 } }>
       { title }
     </Typography>
     <Box sx={ { display: 'flex', alignItems: 'baseline', gap: 0.5 } }>
-      <Box sx={ { ...type.metric, color: textColor.primary } }>
+      <Box sx={ { ...type.readingSm, color: textColor.primary } }>
         { value ? value : '--' }
       </Box>
-      <Box sx={ { ...type.labelTight, color: textColor.tertiary } }>
+      <Box sx={ { ...type.caption, color: textColor.tertiary } }>
         { unit }
       </Box>
     </Box>
@@ -46,7 +46,7 @@ export default function VitalsSummaryCard({ startTime, endTime }: BiometricsSumm
 
   return (
     <Card sx={ { p: 2.5, position: 'relative', mt: 2 } }>
-      <Typography variant="overline" sx={ { display: 'block', color: textColor.tertiary, mb: 2 } }>
+      <Typography variant="caption" sx={ { display: 'block', color: textColor.tertiary, mb: 2 } }>
         Health metrics
       </Typography>
       { isFetching && <CircularProgress sx={ { display: 'block', mx: 'auto', my: 2 } } /> }

@@ -31,7 +31,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <PageContainer sx={ { mb: 15, mt: 2 } }>
+    <PageContainer sx={ { pb: 'calc(120px + env(safe-area-inset-bottom, 0px))', mt: 2 } }>
       <ErrorBoundary componentName='Device settings'>
         <DeviceSettingsSection updateSettings={ updateSettings } />
       </ErrorBoundary>

@@ -130,7 +130,7 @@ export default function AlarmOverride({
           type="time"
           value={ alarmTimeLocalOverride || scheduledAlarmTimeHhMm }
           onChange={ (e) => setAlarmTimeLocalOverride(e.target.value) }
-          variant="standard"
+          variant='outlined'
           sx={ {
             width: '110px',
             '& input::-webkit-calendar-picker-indicator': {

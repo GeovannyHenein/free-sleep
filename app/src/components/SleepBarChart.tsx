@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import { SleepRecord } from '../../../server/src/db/sleepRecordsSchema.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import { getProfile } from '../config/profiles.ts';
+import { surface } from '../designTokens.ts';
 
 
 interface SleepBarChartProps {
@@ -191,7 +192,6 @@ function plotSleepRecords({
   data,
   xScale,
   yScale,
-  theme,
   accent,
   selectedSleepRecord,
   setSelectedSleepRecord
@@ -200,7 +200,6 @@ function plotSleepRecords({
   data: SleepRecord[];
   xScale: d3.ScaleBand<string>;
   yScale: d3.ScaleLinear<number, number>;
-  theme: Theme;
   /** Accent of the side currently being viewed; highlights the selected bar. */
   accent: string;
   selectedSleepRecord: SleepBarChartProps['selectedSleepRecord'];
@@ -251,13 +250,14 @@ function plotSleepRecords({
           .attr('y', Math.min(y1, y2)) // in case reversed
           .attr('width', rectWidth)
           .attr('height', Math.abs(y2 - y1)) // in case reversed
-          .attr(
-            'fill',
-            isSelected
-              ? accent
-              : theme.palette.grey[900]
-          )
-          .attr('rx', 2)
+          // Selected bar sits at partial opacity rather than full-strength
+          // accent — a solid saturated block overpowers everything else on a
+          // dark page. Unselected bars are lifted just enough to stay legible.
+          .attr('fill', isSelected ? accent : surface.overlay)
+          .attr('fill-opacity', isSelected ? 0.55 : 1)
+          .attr('stroke', isSelected ? accent : 'none')
+          .attr('stroke-width', isSelected ? 1 : 0)
+          .attr('rx', 6)
           .attr('class', 'bar')
           .attr('data-id', `${sleepRecord.entered_bed_at}-${i}`)
           .on('click', () => setSelectedSleepRecord(sleepRecord));
@@ -340,7 +340,6 @@ export default function SleepBarChart({
       data: sleepRecords,
       xScale,
       yScale,
-      theme,
       accent,
       selectedSleepRecord,
       setSelectedSleepRecord

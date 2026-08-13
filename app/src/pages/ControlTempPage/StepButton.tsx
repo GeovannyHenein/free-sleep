@@ -1,62 +1,75 @@
 import React from 'react';
-import { ButtonBase, alpha } from '@mui/material';
+import { ButtonBase, Box, alpha } from '@mui/material';
+import KeyboardArrowDownRounded from '@mui/icons-material/KeyboardArrowDownRounded';
+import KeyboardArrowUpRounded from '@mui/icons-material/KeyboardArrowUpRounded';
 
-import { motion, radius, shadow, surface, surfaceTreatment, textColor } from '../../designTokens.ts';
+import { motion, radius, surface, textColor, type } from '../../designTokens.ts';
 
 type StepButtonProps = {
+  /** Accessible label; the visible text is the child. */
   label: string;
   disabled: boolean;
   onClick: () => void;
-  /** Profile accent applied on hover, so the control reads as that person's. */
+  /** Ember colour, used for the pressed and hover state. */
   accent: string;
+  direction: 'up' | 'down';
 };
 
-/** Square ±1° stepper used by the compact side panels. */
+/**
+ * A named temperature control — "cooler" / "warmer" rather than − / +.
+ *
+ * Reaching over in the dark, a word is faster to identify than a symbol, and
+ * a labelled target is naturally large enough to clear the 44px minimum
+ * without padding a tiny glyph out to size.
+ */
 export default function StepButton({
   label,
   disabled,
   onClick,
   accent,
+  direction,
   children,
 }: React.PropsWithChildren<StepButtonProps>) {
+  const Arrow = direction === 'up' ? KeyboardArrowUpRounded : KeyboardArrowDownRounded;
+
   return (
     <ButtonBase
       aria-label={ label }
       disabled={ disabled }
       onClick={ onClick }
       sx={ {
-        width: 48,
-        height: 40,
-        borderRadius: `${radius.sm}px`,
-        border: `1px solid ${alpha('#FFFFFF', 0.07)}`,
-        // Moulded key: gradient for form, top hairline so it catches light.
-        background: surfaceTreatment.control,
+        ...type.control,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.25,
+        // Sized to the label rather than stretched across the card: these are
+        // secondary to the readout and should not compete with it.
+        flex: '0 1 auto',
+        minWidth: 96,
+        minHeight: 44,
+        px: 1.5,
+        borderRadius: `${radius.pill}px`,
         backgroundColor: surface.overlay,
-        boxShadow: `${shadow.hairline}, 0 1px 3px rgba(0,0,0,0.35)`,
-        color: textColor.secondary,
+        color: textColor.tertiary,
         transition: [
-          `background ${motion.fast}`,
-          `border-color ${motion.fast}`,
+          `background-color ${motion.fast}`,
           `color ${motion.fast}`,
-          `box-shadow ${motion.press}`,
           `transform ${motion.press}`,
         ].join(', '),
         '&:hover:not(:disabled)': {
-          borderColor: alpha(accent, 0.38),
-          color: accent,
-          boxShadow: `${shadow.hairlineStrong}, 0 0 14px ${alpha(accent, 0.16)}`,
+          backgroundColor: surface.hover,
+          color: textColor.primary,
         },
-        // Sinks into the surface: the highlight flips to an inner shadow.
         '&:active:not(:disabled)': {
-          transform: 'translateY(1px) scale(0.96)',
-          boxShadow: shadow.pressed,
-          background: 'none',
-          backgroundColor: alpha('#000000', 0.24),
+          transform: 'scale(0.97)',
+          backgroundColor: alpha(accent, 0.18),
+          color: accent,
         },
-        '&:disabled': { opacity: 0.3, boxShadow: 'none' },
+        '&:disabled': { opacity: 0.3 },
       } }
     >
-      { children }
+      <Arrow sx={ { fontSize: 18, opacity: 0.7 } } />
+      <Box component="span">{ children }</Box>
     </ButtonBase>
   );
 }

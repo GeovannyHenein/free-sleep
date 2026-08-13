@@ -47,7 +47,7 @@ export default function VitalsPage() {
 
   return (
     <ErrorBoundary componentName="Vitals page">
-      <PageContainer containerProps={ { ref } } sx={ { mb: 15, gap: 1, mt: 0 } }>
+      <PageContainer containerProps={ { ref } } sx={ { pb: 'calc(120px + env(safe-area-inset-bottom, 0px))', gap: 1, mt: 0 } }>
         <Header title="Vitals" icon={ <FavoriteIcon /> }/>
 
         <Box

@@ -9,6 +9,7 @@ import ErrorBoundary from '@components/ErrorBoundary.tsx';
 import PageContainer from '../PageContainer.tsx';
 import PrimingNotification from './PrimingNotification.tsx';
 import SideCard from './SideCard.tsx';
+import SideDifferential from './SideDifferential.tsx';
 import SideDetailDialog from './SideDetailDialog.tsx';
 import WaterNotification from './WaterNotification.tsx';
 import { useAppStore, type Side } from '@state/appStore.tsx';
@@ -16,8 +17,6 @@ import { useControlTempStore } from './controlTempStore.tsx';
 import { useDeviceStatus } from '@api/deviceStatus';
 import { useSettings } from '@api/settings.ts';
 import { textColor } from '../../designTokens.ts';
-
-const SIDES: Side[] = ['left', 'right'];
 
 export default function ControlTempPage() {
   const { isError, refetch, data: deviceStatus } = useDeviceStatus();
@@ -35,7 +34,7 @@ export default function ControlTempPage() {
     return (
       <PageContainer sx={ { maxWidth: '560px' } }>
         <Typography sx={ { color: textColor.secondary, mb: 2 } }>
-          Couldn&apos;t reach the pod.
+          Can&apos;t reach the pod.
         </Typography>
         <Button variant="contained" onClick={ () => refetch() } disabled={ isUpdating }>
           Try again
@@ -52,20 +51,27 @@ export default function ControlTempPage() {
         gap: 1.5,
       } }
     >
-      { /* Both sides always visible: stacked on phones, side by side on wide screens. */ }
+      { /* Both sides always visible: stacked on phones, side by side on wide
+           screens. On phones the differential sits in the gap between them. */ }
       <Box
         sx={ {
           display: 'grid',
-          gap: 1.5,
+          gap: 1.25,
           width: '100%',
           gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
         } }
       >
-        { SIDES.map(side => (
-          <ErrorBoundary key={ side } componentName={ `Side card ${side}` }>
-            <SideCard side={ side } refetch={ refetch } onExpand={ setExpandedSide } />
-          </ErrorBoundary>
-        )) }
+        <ErrorBoundary componentName="Side card left">
+          <SideCard side="left" refetch={ refetch } onExpand={ setExpandedSide } />
+        </ErrorBoundary>
+
+        <Box sx={ { display: { xs: 'block', md: 'none' } } }>
+          <SideDifferential />
+        </Box>
+
+        <ErrorBoundary componentName="Side card right">
+          <SideCard side="right" refetch={ refetch } onExpand={ setExpandedSide } />
+        </ErrorBoundary>
       </Box>
 
       <Box sx={ { display: 'flex', flexDirection: 'column', gap: 1, width: '100%' } }>

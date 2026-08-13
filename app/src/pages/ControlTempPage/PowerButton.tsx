@@ -12,14 +12,7 @@ import { Job, postJobs } from '@api/jobs.ts';
 import AnalyzeSleepNotification from './AnalyzeSleepNotification.tsx';
 import { useControlTempStore } from './controlTempStore.tsx';
 import { getProfile } from '../../config/profiles.ts';
-import {
-  motion,
-  radius,
-  shadow,
-  surfaceTreatment,
-  textColor,
-  type,
-} from '../../designTokens.ts';
+import { motion, radius, surface, textColor, type } from '../../designTokens.ts';
 
 
 type PowerButtonProps = {
@@ -89,31 +82,25 @@ export default function PowerButton({ isOn, refetch, side: sideProp, inline = fa
 
   return (
     <Box sx={ { mt: inline ? 0 : -6, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' } }>
-      { /* The primary physical control. Built as a moulded key: vertical
-           gradient for form, top hairline so it catches light, and a press
-           that sinks it while the highlight flips to an inner shadow. When
-           on, it carries an accent glow so the state is readable at a glance. */ }
+      { /* The primary control for this side. Carries a soft accent glow while
+           on, so its state is readable without reading the label. */ }
       <ButtonBase
         disabled={ disabled }
         onClick={ () => handleOnClick(!isOn) }
-        aria-label={ isOn ? 'Turn off' : 'Turn on' }
+        aria-label={ isOn ? 'turn off' : 'turn on' }
         sx={ {
           display: 'flex',
           alignItems: 'center',
           gap: 1.25,
           px: 3.25,
-          py: 1.5,
+          minHeight: 44,
           borderRadius: `${radius.pill}px`,
-          ...type.label,
-          background: isOn
-            ? `linear-gradient(180deg, ${alpha(activeColor, 0.26)} 0%, ${alpha(activeColor, 0.1)} 100%)`
-            : surfaceTreatment.control,
-          backgroundColor: isOn ? 'transparent' : alpha('#000000', 0.3),
+          ...type.control,
+          
+          backgroundColor: isOn ? alpha(activeColor, 0.16) : surface.overlay,
           color: isOn ? activeColor : textColor.secondary,
           border: `1px solid ${isOn ? alpha(activeColor, 0.4) : alpha('#FFFFFF', 0.08)}`,
-          boxShadow: isOn
-            ? `${shadow.hairlineStrong}, 0 0 22px ${alpha(activeColor, 0.26)}, 0 2px 8px rgba(0,0,0,0.4)`
-            : `${shadow.hairline}, 0 2px 8px rgba(0,0,0,0.35)`,
+          boxShadow: isOn ? `0 0 26px ${alpha(activeColor, 0.18)}` : 'none',
           transition: [
             `background ${motion.base}`,
             `color ${motion.base}`,
@@ -122,14 +109,13 @@ export default function PowerButton({ isOn, refetch, side: sideProp, inline = fa
             `transform ${motion.press}`,
           ].join(', '),
           '&:active:not(:disabled)': {
-            transform: 'translateY(1px) scale(0.97)',
-            boxShadow: shadow.pressed,
+            transform: 'scale(0.97)',
           },
           '&:disabled': { opacity: 0.4 },
         } }
       >
         <PowerSettingsNewIcon sx={ { fontSize: 18 } } />
-        { isOn ? 'Turn off' : 'Turn on' }
+        { isOn ? 'turn off' : 'turn on' }
       </ButtonBase>
       {
         showAnalyzeSleep && !isUpdating && services?.biometrics?.enabled && (

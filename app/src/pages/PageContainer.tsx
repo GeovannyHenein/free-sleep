@@ -25,7 +25,9 @@ export default function PageContainer({ children, sx, containerProps }: React.Pr
           alignItems: 'center',
           gap: 2,
           margin: 0,
-          justifyContent: 'center',
+          // Top-aligned, not centred. Centring pushed tall pages past their
+          // own bottom padding, so the last row slid under the fixed nav.
+          justifyContent: 'flex-start',
           [theme.breakpoints.up('sm')]: {
             width: '90%',
             padding: 0,

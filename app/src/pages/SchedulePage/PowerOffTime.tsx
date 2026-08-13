@@ -45,7 +45,7 @@ export default function PowerOffTime() {
       type="time"
       value={ selectedSchedule?.power?.off || '09:00' }
       onChange={ (e) => handleChange(e.target.value) }
-      variant='standard'
+      variant='outlined'
       error={ !validations.powerOffTimeIsValid }
       helperText={
         !validations.powerOffTimeIsValid
@@ -54,7 +54,8 @@ export default function PowerOffTime() {
       }
       disabled={ disabled }
       sx={ {
-        width: '110px',
+        flex: 1,
+        minWidth: 0,
         // Hide native indicator (where it exists)
         '& input::-webkit-calendar-picker-indicator': {
           opacity: 0,

@@ -1,5 +1,4 @@
 /* eslint-disable react/no-multi-comp */
-import { useTheme } from '@mui/material/styles';
 import { useMemo } from 'react';
 import { Paper } from '@mui/material';
 import { LineChart, lineElementClasses, areaElementClasses } from '@mui/x-charts/LineChart';
@@ -10,10 +9,9 @@ import { DailySchedule, Time } from '../../../../server/src/db/schedulesSchema.t
 import { useSettings } from '@api/settings.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import { getProfile } from '../../config/profiles.ts';
-import { thermal } from '../../designTokens.ts';
+import { mixHex, surface, textColor, thermal } from '../../designTokens.ts';
 import {
   farenheitToCelcius,
-  formatTemperature,
   MAX_TEMP_C,
   MAX_TEMP_F,
   MIN_TEMP_C,
@@ -23,8 +21,6 @@ import {
 
 type Point = { x: Date; y: number };
 
-const THRESHOLD_F = 82;
-const THRESHOLD_C = farenheitToCelcius(THRESHOLD_F);
 const AREA_ALPHA = 0.35;
 const LINE_ALPHA = 1.0;
 
@@ -99,91 +95,96 @@ function buildSeriesData(selectedSchedule: DailySchedule, yMin: number, yMax: nu
   return points;
 }
 
-// ---------------- Horizontal gradient by time ----------------
-function HorizontalTempGradient({
+/**
+ * Vertical thermal gradient across the plot's temperature range.
+ *
+ * The previous version ran the gradient left-to-right and flipped between two
+ * colours at a threshold, so identical temperatures could be drawn in
+ * different colours depending on where they fell in the night. Mapping colour
+ * to the y axis instead means a given temperature always looks the same, and
+ * the ramp matches the thermal scale used everywhere else in the app.
+ *
+ * The area fill additionally fades toward the baseline so the shape reads as
+ * depth under the line rather than a solid block of colour.
+ */
+function VerticalTempGradient({
   idArea,
   idLine,
-  points,
-  threshold,
-  colorCool,
-  colorHot,
-  areaAlpha = AREA_ALPHA,
-  lineAlpha = LINE_ALPHA,
+  yMin,
+  yMax,
+  accentColor,
 }: {
   idArea: string;
   idLine: string;
-  points: Point[];
-  threshold: number;
-  colorCool?: string;
-  colorHot?: string;
-  areaAlpha?: number;
-  lineAlpha?: number;
+  yMin: number;
+  yMax: number;
+  accentColor: string;
 }) {
-  // We need the drawing area's left/width to build a left→right gradient.
-  const { left, width, top } = useDrawingArea();
+  const { top, height } = useDrawingArea();
 
-  // Normalize a Date->offset [0..1] across the x extent in the plotted window.
-  const minX = points[0].x.getTime();
-  const maxX = points[points.length - 1].x.getTime();
-  const xToOff = (tMs: number) =>
-    maxX === minX ? 0 : Math.max(0, Math.min(1, (tMs - minX) / (maxX - minX)));
+  // Thermal stops, expressed in °F and normalised into the visible y range.
+  // Offset 0 is the top of the plot (hottest), 1 the bottom (coolest).
+  const stopsF: Array<{ at: number; color: string }> = [
+    { at: MAX_TEMP_F, color: thermal.hot },
+    { at: 95, color: thermal.warm },
+    { at: 82, color: thermal.neutral },
+    { at: 70, color: thermal.cool },
+    { at: MIN_TEMP_F, color: thermal.cold },
+  ];
 
-  // Build stops where color should switch based on segment value (y at the segment start).
-  // Because curve='stepAfter', y is constant until the next point.
-  type Stop = { off: number; color: string };
-  const stops: Stop[] = [];
-  if (points.length) {
-    let curColor = points[0].y >= threshold ? colorHot : colorCool;
-    // @ts-expect-error
-    stops.push({ off: 0, color: curColor });
-
-    for (let i = 0; i < points.length - 1; i++) {
-      const segStart = points[i];
-      // const segEnd = points[i + 1];
-      const segColor = segStart.y >= threshold ? colorHot : colorCool;
-
-      // If color changes at this boundary, add a double stop at the boundary offset
-      if (segColor !== curColor) {
-        const off = xToOff(segStart.x.getTime()); // boundary is at the step where value changes
-        // close previous color up to boundary
-        // @ts-expect-error
-        stops.push({ off: off - 0.05, color: curColor });
-        // start new color at same boundary (hard switch)
-        // @ts-expect-error
-        stops.push({ off: off + 0.05, color: segColor });
-        curColor = segColor;
-      }
-    }
-    // Ensure final stop at 1 with the current color
-    // @ts-expect-error
-    stops.push({ off: 1, color: curColor });
-  }
+  // Stops are authored in °F, but the axis may be in °C. Convert each stop
+  // into the axis's own units before normalising, otherwise the ramp lands in
+  // the wrong place whenever the user switches to Celsius.
+  const isCelsiusAxis = yMax < MAX_TEMP_F;
+  const toOffset = (tempF: number) => {
+    const value = isCelsiusAxis ? farenheitToCelcius(tempF) : tempF;
+    const normalised = (value - yMin) / (yMax - yMin);
+    return Math.max(0, Math.min(1, 1 - normalised));
+  };
 
   return (
     <defs>
-      <linearGradient
-        id={ idArea }
-        x1={ left }
-        x2={ left + width }
-        y1={ top }
-        y2={ top }
-        gradientUnits="userSpaceOnUse"
-      >
-        { stops.map((s, i) => (
-          <stop key={ `a-${i}` } offset={ s.off } stopColor={ s.color } stopOpacity={ areaAlpha }/>
-        )) }
-      </linearGradient>
+      { /* Line: full-strength thermal ramp, tinted toward the person whose
+           schedule is shown so the chart reads as theirs. */ }
       <linearGradient
         id={ idLine }
-        x1={ left }
-        x2={ left + width }
+        x1={ 0 }
+        x2={ 0 }
         y1={ top }
-        y2={ top }
+        y2={ top + height }
         gradientUnits="userSpaceOnUse"
       >
-        { stops.map((s, i) => (
-          <stop key={ `l-${i}` } offset={ s.off } stopColor={ s.color } stopOpacity={ lineAlpha }/>
+        { stopsF.map((s, i) => (
+          <stop
+            key={ `l-${i}` }
+            offset={ toOffset(s.at) }
+            stopColor={ mixHex(s.color, accentColor, 0.25) }
+            stopOpacity={ LINE_ALPHA }
+          />
         )) }
+      </linearGradient>
+
+      { /* Area: same ramp, low alpha, fading out toward the baseline. */ }
+      <linearGradient
+        id={ idArea }
+        x1={ 0 }
+        x2={ 0 }
+        y1={ top }
+        y2={ top + height }
+        gradientUnits="userSpaceOnUse"
+      >
+        { stopsF.map((s, i) => {
+          const off = toOffset(s.at);
+          return (
+            <stop
+              key={ `a-${i}` }
+              offset={ off }
+              stopColor={ mixHex(s.color, accentColor, 0.25) }
+              // Fade with depth so the fill thins toward the bottom.
+              stopOpacity={ AREA_ALPHA * (1 - off * 0.72) }
+            />
+          );
+        }) }
       </linearGradient>
     </defs>
   );
@@ -194,7 +195,6 @@ export default function TemperatureScheduleChart() {
   const { selectedSchedule } = useScheduleStore();
   const { data: settings } = useSettings();
   const { side } = useAppStore();
-  const theme = useTheme();
 
   // Warm end of the ramp is tinted with whoever's schedule is on screen, so the
   // chart reads as belonging to that person; the cool end stays on the shared
@@ -215,76 +215,87 @@ export default function TemperatureScheduleChart() {
   if (!points.length) return null;
   const xData = points.map(p => p.x);
   const yData = points.map(p => p.y);
-  const gradAreaId = 'temp-x-grad-area';
-  const gradLineId = 'temp-x-grad-line';
-  const axisColor = theme.palette.grey['600'];
+  const gradAreaId = 'temp-y-grad-area';
+  const gradLineId = 'temp-y-grad-line';
+  // Axis furniture sits well back — the line is the content, the scale is
+  // annotation. Ticks and the axis rule are dropped entirely.
+  const axisColor = textColor.tertiary;
 
   return (
-    <Paper sx={ { width: '100%', height: 300, p: 2 } }>
+    <Paper
+      sx={ {
+        width: '100%',
+        height: 260,
+        p: 2,
+        pl: 0.5,
+        backgroundColor: surface.raised,
+        border: `1px solid ${surface.border}`,
+      } }
+    >
       <LineChart
         xAxis={ [{
           scaleType: 'time',
           data: xData,
           valueFormatter: (v) =>
-            new Date(v as number).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+            new Date(v as number)
+              .toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+              .toLowerCase()
+              .replace(' ', ''),
           min: xData[0],
           max: xData[xData.length - 1],
           tickMinStep: 60 * 60 * 1000,
           tickNumber: 4,
-          label: '°F',
-          tickLabelStyle: { fill: axisColor },
+          disableLine: true,
+          disableTicks: true,
+          tickLabelStyle: { fill: axisColor, fontSize: 11 },
         }] }
         yAxis={ [{
           min: yMin,
           max: yMax,
-          tickLabelStyle: { fill: axisColor },
-          valueFormatter: (value: number) => formatTemperature(value, isCelsius) ,
+          disableLine: true,
+          disableTicks: true,
+          tickNumber: 4,
+          tickLabelStyle: { fill: axisColor, fontSize: 11 },
+          // Values on this axis are already in the display unit — buildSeriesData
+          // and yMin/yMax convert up front. Running them through a converting
+          // formatter again rendered a 20°C tick as "-6.5°".
+          valueFormatter: (value: number) => `${Math.round(value)}°`,
         }] }
         series={ [{
-          id: 'targeTempF',
-          label: isCelsius ? 'Target °C' : 'Target °F',
+          id: 'targetTemp',
+          label: isCelsius ? 'target °c' : 'target °f',
           data: yData,
           area: true,
           showMark: false,
+          // A schedule holds each setpoint until the next one, so stepped is
+          // the honest shape — a smoothed curve would imply a gradual drift
+          // between setpoints that the pod does not actually perform.
           curve: 'stepAfter',
         }] }
-        margin={ {
-          right: 0,
-          left: 50,
-          top: 5,
-          bottom: 19
-        } }
+        margin={ { right: 8, left: 44, top: 12, bottom: 24 } }
         sx={ {
-          pt: 0,
-          [`& .${lineElementClasses.root}`]: { stroke: `url(#${gradLineId})` },
-          [`& .${areaElementClasses.root}`]: { fill: `url(#${gradAreaId})`, filter: 'none' },
-          '& .MuiChartsAxis-bottom .MuiChartsAxis-line': {
-            stroke: axisColor,
+          [`& .${lineElementClasses.root}`]: {
+            stroke: `url(#${gradLineId})`,
+            strokeWidth: 2,
           },
-          '& .MuiChartsAxis-bottom .MuiChartsAxis-tick': {
-            stroke: axisColor,
-          },
-          '& .MuiChartsAxis-left .MuiChartsAxis-line': {
-            stroke: axisColor,
-          },
-          '& .MuiChartsAxis-left .MuiChartsAxis-tick': {
-            stroke: axisColor,
+          [`& .${areaElementClasses.root}`]: {
+            fill: `url(#${gradAreaId})`,
+            filter: 'none',
           },
           '& .MuiChartsGrid-line': {
-            stroke: axisColor,
+            stroke: surface.border,
+            strokeDasharray: '2 4',
           },
         } }
+        grid={ { horizontal: true } }
         slotProps={ { legend: { hidden: true } } }
       >
-        <HorizontalTempGradient
+        <VerticalTempGradient
           idArea={ gradAreaId }
           idLine={ gradLineId }
-          points={ points }
-          threshold={ isCelsius ? THRESHOLD_C : THRESHOLD_F }
-          colorCool={ thermal.cold }
-          colorHot={ profileAccent }
-          areaAlpha={ AREA_ALPHA }
-          lineAlpha={ LINE_ALPHA }
+          yMin={ yMin }
+          yMax={ yMax }
+          accentColor={ profileAccent }
         />
       </LineChart>
     </Paper>

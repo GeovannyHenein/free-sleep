@@ -10,34 +10,34 @@ import Grid from '@mui/material/GridLegacy';
 import PageContainer from '../PageContainer.tsx';
 import StatusCard from './StatusCard.tsx';
 import { ServerStatusKey, StatusInfo } from '@api/serverStatusSchema.ts';
+import { textColor, type } from '../../designTokens.ts';
 
 export default function StatusPage() {
   const { data, isLoading, dataUpdatedAt } = useServerStatus(5_000);
   const updatedAt = moment(dataUpdatedAt);
-  const formatted = updatedAt.format('YYYY-MM-DD HH:mm:ss z');
   return (
     <PageContainer
       sx={ {
         width: '100%',
         maxWidth: { xs: '100%', sm: '800px' },
         mx: 'auto',
-        mb: 15,
+        pb: 'calc(120px + env(safe-area-inset-bottom, 0px))',
       } }
     >
-      <Stack spacing={ 1 } alignItems="center">
+      { /* Left-aligned to match every other page; the centred heading was the
+           last of the stock layout here. */ }
+      <Stack spacing={ 0.25 } sx={ { width: '100%', px: 0.5, mb: 1 } }>
         <Typography variant="h4">
-          Server Status
+          Services
         </Typography>
+        { /* dataUpdatedAt is 0 until the first fetch resolves, and moment(0)
+             formats as a believable time rather than an obvious epoch. Only
+             show a timestamp once one actually exists. */ }
         <Typography
-          variant="body2"
-          sx={ {
-            color: (t) => t.palette.text.secondary,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            minHeight: 24,
-          } }
+          className="tabular"
+          sx={ { ...type.caption, color: textColor.tertiary } }
         >
-          Updated at: { formatted }
+          { dataUpdatedAt ? `checked ${updatedAt.format('h:mm a')}` : 'checking…' }
         </Typography>
       </Stack>
       { isLoading && <CircularProgress /> }

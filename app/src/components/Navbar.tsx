@@ -10,15 +10,7 @@ import { useAppStore } from '@state/appStore.tsx';
 import { alpha, useTheme } from '@mui/material/styles';
 import { PAGES } from './pages';
 import Logo from './Logo.tsx';
-import {
-  blur,
-  motion,
-  radius,
-  shadow,
-  surface,
-  surfaceTreatment,
-  textColor,
-} from '../designTokens.ts';
+import { motion, radius, surface, textColor } from '../designTokens.ts';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -77,7 +69,7 @@ export default function Navbar() {
           // Blur and translucency come from the theme; only the border is set
           // here so the bar reads as a floating layer over the page.
           borderTop: `1px solid ${alpha('#FFFFFF', 0.06)}`,
-          boxShadow: `${shadow.hairline}, 0 -8px 32px rgba(0,0,0,0.4)`,
+          boxShadow: '0 -8px 32px rgba(0,0,0,0.4)',
           top: 'auto', // Push it to the bottom
           bottom: 0, // Stick it to the bottom
           left: 0,
@@ -101,11 +93,10 @@ export default function Navbar() {
                     borderRadius: `${radius.pill}px`,
                     px: 2,
                     color: isActive ? theme.palette.primary.light : textColor.tertiary,
-                    background: isActive ? surfaceTreatment.control : 'none',
                     backgroundColor: isActive
                       ? alpha(theme.palette.primary.main, 0.13)
                       : 'transparent',
-                    boxShadow: isActive ? shadow.hairlineStrong : 'none',
+                    boxShadow: 'none',
                     transition: `color ${motion.base}, background-color ${motion.base}`,
                     '&:hover': {
                       color: isActive ? theme.palette.primary.light : textColor.primary,
@@ -134,7 +125,7 @@ export default function Navbar() {
           top: 0,
           left: 0,
           right: 0,
-          px: 2,
+          px: 1,
           py: 1.25,
           zIndex: 10,
           backgroundColor: alpha(theme.palette.background.default, 0.85),
@@ -144,46 +135,24 @@ export default function Navbar() {
         <Logo size={ 28 } />
       </Box>
 
-      { /* Mobile Bottom Navigation — a floating pill rather than a bar welded
-           to the bottom edge. The active indicator is a single pill that
-           slides between slots instead of each item lighting up separately. */ }
+      { /* Mobile Bottom Navigation — bare icons on the page, no container.
+           The active destination is marked by accent colour alone. */ }
       <Box
         sx={ {
           display: { xs: 'flex', md: 'none' },
           position: 'fixed',
-          bottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-          left: 12,
-          right: 12,
-          height: 64,
-          borderRadius: `${radius.pill}px`,
-          overflow: 'hidden',
-          border: `1px solid ${alpha('#FFFFFF', 0.08)}`,
-          backgroundColor: alpha(surface.raised, 0.7),
-          backdropFilter: blur.nav,
-          WebkitBackdropFilter: blur.nav,
-          boxShadow: `${shadow.hairlineStrong}, ${shadow.float}`,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          // No container: the icons sit directly on the page, with a short
+          // fade so content scrolling underneath dissolves rather than
+          // colliding with a hard edge.
+          background: `linear-gradient(to top, ${surface.base} 55%, ${alpha(surface.base, 0)} 100%)`,
           zIndex: 10,
         } }
       >
-        { /* Sliding indicator, positioned by index. */ }
-        <Box
-          aria-hidden
-          sx={ {
-            position: 'absolute',
-            top: 8,
-            bottom: 8,
-            left: 8,
-            width: `calc((100% - 16px) / ${PAGES.length})`,
-            transform: `translateX(${mobileNavValue * 100}%)`,
-            borderRadius: `${radius.pill}px`,
-            background: surfaceTreatment.control,
-            backgroundColor: alpha(theme.palette.primary.main, 0.14),
-            border: `1px solid ${alpha(theme.palette.primary.main, 0.22)}`,
-            boxShadow: shadow.hairlineStrong,
-            transition: `transform ${motion.spring}`,
-            pointerEvents: 'none',
-          } }
-        />
         <BottomNavigation
           value={ mobileNavValue }
           onChange={ handleMobileNavChange }
@@ -204,10 +173,12 @@ export default function Navbar() {
               sx={ {
                 minWidth: 0,
                 color: textColor.disabled,
+                '& .MuiSvgIcon-root': { fontSize: 24 },
                 transition: `color ${motion.base}, transform ${motion.press}`,
                 '&:active': { transform: 'scale(0.9)' },
+                // Active state is colour alone — no pill, no background.
                 '&.Mui-selected': {
-                  color: theme.palette.primary.light,
+                  color: theme.palette.primary.main,
                 },
               } }
             />

@@ -34,7 +34,7 @@ export default function DailyPriming({ settings, updateSettings }: PrimePodSched
           label="Prime time"
           type="time"
           size='medium'
-          variant='standard'
+          variant='outlined'
           value={ settings?.primePodDaily?.time || '12:00' }
           onChange={ (e) => updateSettings({ primePodDaily: { time: e.target.value } }) }
           disabled={ isUpdating || settings?.primePodDaily?.enabled === false }

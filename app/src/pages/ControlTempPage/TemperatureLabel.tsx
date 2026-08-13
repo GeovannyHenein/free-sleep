@@ -103,7 +103,7 @@ export default function TemperatureLabel({
               <Box
                 aria-hidden
                 sx={ {
-                  ...type.hero,
+                  ...type.reading,
                   position: 'absolute',
                   inset: 0,
                   color: sliderColor,
@@ -114,7 +114,7 @@ export default function TemperatureLabel({
               >
                 { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
               </Box>
-              <Box sx={ { ...type.hero, position: 'relative', color: sliderColor, textWrap: 'nowrap' } }>
+              <Box sx={ { ...type.reading, position: 'relative', color: sliderColor, textWrap: 'nowrap' } }>
                 { formatTemperature(currentTargetTemp !== sliderTemp ? sliderTemp : currentTargetTemp, displayCelsius) }
               </Box>
             </Box>
@@ -122,7 +122,7 @@ export default function TemperatureLabel({
             { /* Supporting readouts, held well below the hero in the hierarchy. */ }
             <Typography
               className="tabular"
-              sx={ { ...type.labelTight, textWrap: 'nowrap', color: textColor.secondary, mb: 0.5 } }
+              sx={ { ...type.caption, textWrap: 'nowrap', color: textColor.secondary, mb: 0.5 } }
             >
               { `Now ${formatTemperature(currentTemperatureF, displayCelsius)}` }
             </Typography>
@@ -153,7 +153,7 @@ export default function TemperatureLabel({
               width: '100%',
             } }
           >
-            <Box sx={ { ...type.hero, color: textColor.disabled, opacity: 0.55 } }>
+            <Box sx={ { ...type.reading, color: textColor.disabled, opacity: 0.55 } }>
               Off
             </Box>
             {

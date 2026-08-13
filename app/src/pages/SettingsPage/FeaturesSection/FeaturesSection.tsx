@@ -1,14 +1,26 @@
-import InfoIcon from '@mui/icons-material/Info';
-import { Box, CircularProgress, FormControlLabel, Typography, Switch } from '@mui/material';
+import {
+  Box,
+  ButtonBase,
+  CircularProgress,
+  Collapse,
+  Divider,
+  FormControlLabel,
+  Switch,
+  Typography,
+  alpha,
+} from '@mui/material';
 import Section from '../Section.tsx';
 import { Services, useServices, postServices } from '@api/services.ts';
 import { useAppStore } from '@state/appStore.tsx';
 import { DeepPartial } from 'ts-essentials';
+import { useState } from 'react';
+import { radius, surface, textColor, type } from '../../../designTokens.ts';
 
 export default function FeaturesSection() {
   const { data: services, refetch, isLoading } = useServices();
   const setIsUpdating = useAppStore(state => state.setIsUpdating);
   const isUpdating = useAppStore(state => state.isUpdating);
+  const [showCommand, setShowCommand] = useState(false);
 
   const updateServices = (services: DeepPartial<Services>) => {
     setIsUpdating(true);
@@ -35,23 +47,54 @@ export default function FeaturesSection() {
         }
         label="Biometrics"
       />
-      <Box display='flex' gap={ 1 }>
+      <Typography sx={ { ...type.caption, color: textColor.tertiary, mt: 0.5 } }>
+        Calculates heart rate, HRV and breathing from the cover&apos;s sensors.
+        Needs a one-time install on the pod before it can be switched on.
+      </Typography>
 
-        <InfoIcon sx={ { color: 'text.secondary' } }/>
-
-        { /* component="div" on the outer Typography: the default <p> cannot
-             legally contain the nested block below, which trips a React
-             hydration error. */ }
-        <Typography color='text.secondary' component='div'>
-          Calculate biometrics for the pod.
-          Requires you to run this command on your pod. Once installation completes successfully, you can toggle this on/off.
-          <Typography color='text.secondary' component='code' sx={ { display: 'block', mt: 1, fontFamily: 'monospace' } }>
+      { /* The install command is a raw shell line — useful once, ugly always.
+           Kept behind a disclosure so it is available without sitting on the
+           page as unexplained monospace text. */ }
+      <Box sx={ { mt: 1 } }>
+        <ButtonBase
+          onClick={ () => setShowCommand(v => !v) }
+          aria-expanded={ showCommand }
+          sx={ {
+            ...type.caption,
+            color: textColor.secondary,
+            borderRadius: `${radius.sm}px`,
+            minHeight: 44,
+            px: 1,
+            ml: -1,
+            '&:hover': { color: textColor.primary },
+          } }
+        >
+          { showCommand ? 'hide install command' : 'show install command' }
+        </ButtonBase>
+        <Collapse in={ showCommand }>
+          <Box
+            component="code"
+            sx={ {
+              display: 'block',
+              mt: 1,
+              p: 1.5,
+              borderRadius: `${radius.sm}px`,
+              backgroundColor: alpha('#000000', 0.3),
+              border: `1px solid ${surface.border}`,
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+              fontSize: '0.75rem',
+              color: textColor.secondary,
+              overflowX: 'auto',
+              whiteSpace: 'nowrap',
+            } }
+          >
             sh /home/dac/free-sleep/scripts/enable_biometrics.sh
-          </Typography>
-        </Typography>
-
+          </Box>
+        </Collapse>
       </Box>
-      <br />
+
+      <Divider sx={ { my: 2.5 } } />
+
       <FormControlLabel
         control={
           <Switch
@@ -60,10 +103,10 @@ export default function FeaturesSection() {
             onChange={ (event) => updateServices({ sentryLogging: { enabled: event.target.checked } }) }
           />
         }
-        label="Enable Sentry error reporting"
+        label="Error reporting"
       />
-      <Typography color='text.secondary'>
-        Help improve stability by sending anonymous error reports.
+      <Typography sx={ { ...type.caption, color: textColor.tertiary } }>
+        Sends anonymous crash reports to help track down bugs.
       </Typography>
     </Section>
   );

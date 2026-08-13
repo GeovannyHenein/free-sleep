@@ -23,7 +23,7 @@ export default function AlarmDuration() {
         <Select
           disabled={ isUpdating }
           value={ selectedSchedule?.alarm.duration }
-          variant='standard'
+          variant='outlined'
           onChange={ (event) => {
             updateSelectedSchedule(
               {
