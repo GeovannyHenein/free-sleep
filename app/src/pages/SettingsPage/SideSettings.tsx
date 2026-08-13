@@ -65,7 +65,7 @@ export default function SideSettings({ side, settings, updateSettings }: AwayMod
           disabled={ isUpdating }
           checked={ settings?.[side]?.awayMode || false }
           onChange={ (event) => updateSettings({ [side]: { awayMode: event.target.checked } }) }
-          inputProps={ { 'aria-label': `away mode for the ${side} side` } }
+          slotProps={ { input: { 'aria-label': `away mode for the ${side} side` } } }
         />
       </Box>
     </Box>

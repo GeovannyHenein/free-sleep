@@ -30,11 +30,14 @@ export default function StatusPage() {
         <Typography variant="h4">
           Services
         </Typography>
+        { /* dataUpdatedAt is 0 until the first fetch resolves, and moment(0)
+             formats as a believable time rather than an obvious epoch. Only
+             show a timestamp once one actually exists. */ }
         <Typography
           className="tabular"
           sx={ { ...type.caption, color: textColor.tertiary } }
         >
-          checked { updatedAt.format('h:mm a') }
+          { dataUpdatedAt ? `checked ${updatedAt.format('h:mm a')}` : 'checking…' }
         </Typography>
       </Stack>
       { isLoading && <CircularProgress /> }

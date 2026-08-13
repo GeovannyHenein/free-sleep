@@ -21,6 +21,9 @@ export default function AlarmEnabledSwitch() {
             );
           } }
           disabled={ isUpdating }
+          // "Enabled" alone is ambiguous when the page carries several
+          // switches; name the thing being enabled for screen readers.
+          slotProps={ { input: { 'aria-label': 'enable the alarm for this day' } } }
         />
       }
       label="Enabled"

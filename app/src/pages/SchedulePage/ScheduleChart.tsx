@@ -12,7 +12,6 @@ import { getProfile } from '../../config/profiles.ts';
 import { mixHex, surface, textColor, thermal } from '../../designTokens.ts';
 import {
   farenheitToCelcius,
-  formatDegrees,
   MAX_TEMP_C,
   MAX_TEMP_F,
   MIN_TEMP_C,
@@ -257,7 +256,10 @@ export default function TemperatureScheduleChart() {
           disableTicks: true,
           tickNumber: 4,
           tickLabelStyle: { fill: axisColor, fontSize: 11 },
-          valueFormatter: (value: number) => formatDegrees(value, isCelsius),
+          // Values on this axis are already in the display unit — buildSeriesData
+          // and yMin/yMax convert up front. Running them through a converting
+          // formatter again rendered a 20°C tick as "-6.5°".
+          valueFormatter: (value: number) => `${Math.round(value)}°`,
         }] }
         series={ [{
           id: 'targetTemp',

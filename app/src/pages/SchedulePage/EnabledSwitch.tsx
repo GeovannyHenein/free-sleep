@@ -41,7 +41,7 @@ export default function EnabledSwitch() {
           });
         } }
         disabled={ isUpdating }
-        inputProps={ { 'aria-label': 'enable this day\'s schedule' } }
+        slotProps={ { input: { 'aria-label': 'enable this day\'s schedule' } } }
       />
     </Box>
   );

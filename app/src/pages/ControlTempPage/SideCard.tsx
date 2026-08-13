@@ -84,17 +84,37 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
   // Working = the pump is actively driving toward a target, which is what the
   // breathing ember indicates.
   const isWorking = isOn && currentTemp !== targetTemp;
-  let stateLabel: string;
-  if (isAway) {
-    stateLabel = 'away';
-  } else if (!isOn) {
-    stateLabel = 'off';
+
+  // Thermal state only. Away is a separate axis — a side can be away *and*
+  // running, so folding it in here hid the real state behind the away flag.
+  let thermalState: string;
+  if (!isOn) {
+    thermalState = 'off';
   } else if (currentTemp < targetTemp) {
-    stateLabel = 'warming';
+    thermalState = 'warming';
   } else if (currentTemp > targetTemp) {
-    stateLabel = 'cooling';
+    thermalState = 'cooling';
   } else {
-    stateLabel = 'holding';
+    thermalState = 'holding';
+  }
+
+  /**
+   * The one status line.
+   *
+   * Away must always surface: it means this side mirrors the other one and
+   * its own controls are inert, which is exactly the thing you would be
+   * confused by otherwise. Previously the schedule label took precedence and
+   * an away side could read "on at 9:00 pm" with no mention of away at all.
+   */
+  let statusLine: string;
+  if (isAway && isOn) {
+    statusLine = `away · ${thermalState} · now ${formatDegrees(currentTemp, isCelsius)}`;
+  } else if (isAway) {
+    statusLine = scheduleLabel ? `away · ${scheduleLabel}` : 'away';
+  } else if (isOn) {
+    statusLine = `${thermalState} · now ${formatDegrees(currentTemp, isCelsius)}`;
+  } else {
+    statusLine = scheduleLabel ?? 'off';
   }
 
   const postUpdate = useCallback(async () => {
@@ -173,7 +193,7 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
           backgroundColor: isOn ? emberColor : surface.border,
           opacity: isOn ? 1 : 0.5,
           transition: `background-color ${motion.slow}, opacity ${motion.slow}`,
-          ...(isOn && isWorking && !isUpdating && {
+          ...(isOn && isWorking && {
             animation: `gbedos-ember ${ember.breathDuration} ease-in-out infinite`,
           }),
           '@keyframes gbedos-ember': {
@@ -197,7 +217,7 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
             ? `linear-gradient(90deg, ${alpha(emberColor, 0.3)} 0%, ${alpha(emberColor, 0.1)} 32%, transparent 100%)`
             : 'none',
           transition: `background ${motion.slow}`,
-          ...(isOn && isWorking && !isUpdating && {
+          ...(isOn && isWorking && {
             animation: `gbedos-ember-bleed ${ember.breathDuration} ease-in-out infinite`,
           }),
           '@keyframes gbedos-ember-bleed': {
@@ -280,9 +300,7 @@ export default function SideCard({ side, refetch, onExpand }: SideCardProps) {
             className="tabular"
             sx={ { ...type.status, color: textColor.secondary, mt: 0.5 } }
           >
-            { isOn
-              ? `${stateLabel} · now ${formatDegrees(currentTemp, isCelsius)}`
-              : scheduleLabel ?? stateLabel }
+            { statusLine }
           </Typography>
         </Box>
       </ButtonBase>

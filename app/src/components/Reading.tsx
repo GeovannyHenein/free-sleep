@@ -30,9 +30,13 @@ export default function Reading({ value, unit, color, size = 'lg', label, sx }: 
   return (
     <Box
       component="span"
-      // The split unit would otherwise be announced as a separate fragment;
-      // an explicit label keeps it a single readable value.
-      role="text"
+      // The value and unit are separate spans so the unit can be set small and
+      // dropped to the baseline; without grouping they are announced as two
+      // fragments. role="img" + aria-label collapses them into one value.
+      // (role="text" would be neater but is Safari-only — on other browsers it
+      // is ignored, and with both children aria-hidden the readout would have
+      // had no accessible name at all.)
+      role="img"
       aria-label={ label ?? `${value}${unit ?? ''}` }
       sx={ {
         ...scale,

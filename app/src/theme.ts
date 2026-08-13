@@ -316,17 +316,22 @@ const buildComponents = (mode: PaletteMode) => {
           padding: 0,
           margin: 8,
           overflow: 'visible',
+          // The hidden input lives inside switchBase, which is 28px tall and
+          // translates 18px when checked. Oversizing it here gives a tap area
+          // that comfortably clears 44px in both states; it does travel with
+          // the thumb, but at 84x44 over a 46x28 track it still covers the
+          // whole control either way. (Repositioning switchBase to stop the
+          // travel collapses the track — the thumb is absolutely positioned
+          // against it.)
           '& .MuiSwitch-input': {
             top: -8,
+            left: -20,
             height: 44,
-            width: '100%',
-            left: 0,
+            width: 84,
           },
         },
         switchBase: ({ theme }) => ({
           padding: 3,
-          // Hit area is expanded via the wrapper below; this keeps the visual
-          // thumb where it is.
           transition: `transform ${motion.spring}`,
           '&.Mui-checked': {
             transform: 'translateX(18px)',
